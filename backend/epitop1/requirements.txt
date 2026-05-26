@@ -1,0 +1,5 @@
+# EpiTop1 — B Linear Epitope Predictor
+# Requirements
+
+numpy>=1.21.0
+biopython>=1.79

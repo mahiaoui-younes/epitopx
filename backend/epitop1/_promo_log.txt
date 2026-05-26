@@ -1,0 +1,6 @@
+--- mvlen=5 ---
+  p0: scr=0.626 len=28 seq=DREINNYTSLIHSLI
+  p1: scr=0.531 len=28 seq=WNASWSNKSLEQIWN
+  p2: scr=0.400 len=28 seq=LGIWGCSGKLICTTA
+  p3: scr=0.363 len=28 seq=GSTMGAASMTLTVQA
+  p4: scr=0.316 len=28 seq=WGIKQLQARILAVER

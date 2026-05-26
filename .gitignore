@@ -1,0 +1,64 @@
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ── Django ────────────────────────────────────────────────────────────
+*.log
+local_settings.py
+backend/db.sqlite3
+backend/db_fresh.sqlite3
+backend/media/
+backend/staticfiles/
+backend/static_collected/
+backend/celerybeat-schedule
+backend/celerybeat.pid
+
+# ── Environment / secrets ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.env
+frontend/.env
+
+# ── Node.js ───────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.pnp.*
+
+# ── IDE / OS ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Test artefacts ────────────────────────────────────────────────────
+load_test_results*.txt
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Compiled / binary ─────────────────────────────────────────────────
+*.so
+*.dylib
+*.dll

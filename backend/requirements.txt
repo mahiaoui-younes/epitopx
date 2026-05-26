@@ -1,0 +1,28 @@
+# ── Core ─────────────────────────────────────────────────────────────
+Django>=6.0,<7.0
+djangorestframework>=3.14
+djangorestframework-simplejwt>=5.3
+django-cors-headers>=4.0
+
+# ── Production server ─────────────────────────────────────────────────
+gunicorn>=21.0          # Linux/macOS (Render)
+waitress>=3.0           # Windows local dev
+
+# ── Static files (production) ─────────────────────────────────────────
+whitenoise[brotli]>=6.6
+
+# ── Database ──────────────────────────────────────────────────────────
+psycopg2-binary>=2.9
+dj-database-url>=2.0
+
+# ── Security & hashing ────────────────────────────────────────────────
+argon2-cffi>=23.1       # Argon2 password hasher (strongest)
+cryptography>=41.0
+
+# ── Caching (optional Redis backend) ──────────────────────────────────
+django-redis>=5.4
+
+# ── Science ────────────────────────────────────────────────────────────
+Pillow
+numpy>=1.21.0
+biopython>=1.79

@@ -1,0 +1,59 @@
+﻿Total epitopes detected but NOT in top 5: 65
+
+Rank distribution of detected-but-not-top-5 epitopes:
+    6-10: 25
+   11-20: 7
+   21-50: 5
+  51-150: 25
+    150+: 3
+
+Average false positives in top 5 (for these proteins): 3.3/5
+
+
+--- Detailed examples (first 15 ranked 6-20): ---
+P  2 rank= 10 len=28 cs=0.319 rs=0.257 cons=0.30 true_top5=4/5 false_top5=1/5  YAWNRKRISNCVADY
+P  4 rank=  9 len=28 cs=0.470 rs=0.439 cons=0.57 true_top5=1/5 false_top5=4/5  SKAFSNCYPYDVPDY
+P  4 rank=  7 len=28 cs=0.535 rs=0.500 cons=0.59 true_top5=1/5 false_top5=4/5  KSGSTYPVLNVTMPN
+P  4 rank= 11 len=28 cs=0.396 rs=0.349 cons=0.45 true_top5=1/5 false_top5=4/5  SLPFQNVHPVTIGEC
+P  7 rank= 10 len=28 cs=0.635 rs=0.641 cons=0.71 true_top5=1/5 false_top5=4/5  EIKITPQSSITEAEL
+P 10 rank=  8 len=28 cs=0.409 rs=0.371 cons=0.48 true_top5=0/5 false_top5=5/5  QNKAIIEQEIENLN
+P 10 rank= 14 len=14 cs=0.450 rs=0.962 cons=0.64 true_top5=0/5 false_top5=5/5  KEFTLNIDKKSASM
+P 10 rank=  9 len=28 cs=0.331 rs=0.315 cons=0.49 true_top5=0/5 false_top5=5/5  NAKMIGLYVKKINQ
+P 14 rank=  8 len=28 cs=0.473 rs=0.449 cons=0.56 true_top5=2/5 false_top5=3/5  RMVLSAFDERRNKYL
+P 14 rank=  9 len=28 cs=0.414 rs=0.411 cons=0.59 true_top5=2/5 false_top5=3/5  TYQNHENMEAEASQE
+P 16 rank=  6 len=28 cs=0.563 rs=0.542 cons=0.65 true_top5=3/5 false_top5=2/5  QASQEVKNWMTETLL
+P 18 rank= 13 len=20 cs=0.549 rs=1.020 cons=0.59 true_top5=1/5 false_top5=4/5  VQVLALEPGKNPRAV
+P 22 rank= 12 len=16 cs=0.541 rs=1.032 cons=0.57 true_top5=4/5 false_top5=1/5  PTLHEYMLDLQPETT
+P 26 rank=  7 len=28 cs=0.366 rs=0.342 cons=0.48 true_top5=3/5 false_top5=2/5  VYNGTKENIDVTTDN
+P 27 rank=  9 len=20 cs=0.381 rs=0.665 cons=0.45 true_top5=1/5 false_top5=4/5  NWEILLHPSHIVSKN
+
+--- What if we use top-K instead of top-5? ---
+
+--- Cumulative detection by rank threshold: ---
+  Top-  1: 0 would move in (of 65 misses)
+  Top-  2: 0 would move in (of 65 misses)
+  Top-  3: 0 would move in (of 65 misses)
+  Top-  4: 0 would move in (of 65 misses)
+  Top-  5: 0 would move in (of 65 misses)
+  Top-  6: 7 would move in (of 65 misses)
+  Top-  7: 15 would move in (of 65 misses)
+  Top-  8: 18 would move in (of 65 misses)
+  Top- 10: 25 would move in (of 65 misses)
+  Top- 15: 32 would move in (of 65 misses)
+  Top- 20: 32 would move in (of 65 misses)
+  Top- 30: 34 would move in (of 65 misses)
+  Top- 50: 37 would move in (of 65 misses)
+
+--- Length distribution of misses vs hits: ---
+Missed epitope candidate lengths:
+  10 aa: 1
+  12 aa: 3
+  14 aa: 5
+  15 aa: 1
+  16 aa: 4
+  18 aa: 8
+  20 aa: 18
+  22 aa: 1
+  24 aa: 1
+  27 aa: 1
+  28 aa: 22

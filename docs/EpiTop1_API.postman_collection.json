@@ -1,0 +1,582 @@
+{
+  "info": {
+    "name": "EpiTop1 API",
+    "description": "B-cell Linear Epitope Prediction API with EpiTop1 Integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Epitope Analysis",
+      "item": [
+        {
+          "name": "1. Basic Analysis (Core Module)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"MFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQ\",\n  \"method\": \"core\",\n  \"min_length\": 9,\n  \"max_length\": 20,\n  \"min_score\": 0.5,\n  \"top_n\": 20\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Analyze protein sequence using Core module (5 methods: Hopp & Woods, Kyte & Doolittle, Karplus & Schulz, Emini, Kolaskar)"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Bio Module Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"MFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQ\",\n  \"method\": \"bio\",\n  \"min_length\": 10,\n  \"max_length\": 18,\n  \"min_score\": 0.6,\n  \"top_n\": 15\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Analyze protein sequence using Bio module (7 methods: Core + Parker + Chou & Fasman)"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Analysis with Long Sequence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \">Spike protein from SARS-CoV-2\\nMFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSST\",\n  \"method\": \"core\",\n  \"min_length\": 9,\n  \"max_length\": 25,\n  \"min_score\": 0.45,\n  \"top_n\": 10\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Analyze FASTA format sequence with custom parameters"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Strict Analysis (High Score Threshold)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"MFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQ\",\n  \"method\": \"bio\",\n  \"min_length\": 12,\n  \"max_length\": 20,\n  \"min_score\": 0.8,\n  \"top_n\": 5\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Find only high-quality epitopes (score >= 0.8)"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Permissive Analysis (Low Threshold)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"MFVFLVLLPLVSSTQWFVFLVLLPLVSSTQ\",\n  \"method\": \"core\",\n  \"min_length\": 7,\n  \"max_length\": 25,\n  \"min_score\": 0.3,\n  \"top_n\": 50\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Get more candidates with lower score threshold"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Listing & Filtering",
+      "item": [
+        {
+          "name": "List All Analyses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                ""
+              ]
+            },
+            "description": "List all epitope analyses with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "List with Pagination",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/?limit=10&offset=0",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get analyses with limit and offset for pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analysis Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/1/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "1",
+                ""
+              ]
+            },
+            "description": "Get detailed results for a specific analysis (replace 1 with analysis ID)"
+          },
+          "response": []
+        },
+        {
+          "name": "Recent Analyses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/recent/?limit=5",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "recent",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Get the 5 most recent analyses"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Method (Core)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/by_method/?method=core",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "by_method",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "method",
+                  "value": "core"
+                }
+              ]
+            },
+            "description": "Get all analyses performed with Core method"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Method (Bio)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/by_method/?method=bio",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "by_method",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "method",
+                  "value": "bio"
+                }
+              ]
+            },
+            "description": "Get all analyses performed with Bio method"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Analysis",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/1/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "1",
+                ""
+              ]
+            },
+            "description": "Delete a specific analysis (replace 1 with analysis ID)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "DNA to Protein (Existing)",
+      "item": [
+        {
+          "name": "Convert DNA to RNA & Protein",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dna_sequence\": \"ATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATG\"\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversions/convert/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "convert",
+                ""
+              ]
+            },
+            "description": "Convert DNA sequence to RNA and Protein"
+          },
+          "response": []
+        },
+        {
+          "name": "Conversion History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversions/history/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "history",
+                ""
+              ]
+            },
+            "description": "Get all DNA to protein conversions history"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Example Test Sequences",
+      "item": [
+        {
+          "name": "COVID-19 Spike Protein (Short)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"MFVFLVLLPLVSSTQWFVFLVLLPLVSSTQWFVFLVLLPLVSSTQ\",\n  \"method\": \"core\",\n  \"min_score\": 0.5,\n  \"top_n\": 20\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "COVID-19 Spike protein sample - SARS-CoV-2"
+          },
+          "response": []
+        },
+        {
+          "name": "Influenza HA Protein",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"MKTIIALSYIFCLVFADYKDDDGKQYFQK PQLTQPHTIGQQQNTGIICGR\",\n  \"method\": \"bio\",\n  \"min_score\": 0.5,\n  \"top_n\": 15\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Influenza Hemagglutinin protein - example immunogenic sequence"
+          },
+          "response": []
+        },
+        {
+          "name": "Random Test Sequence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sequence\": \"ACDEFGHIKLMNPQRSTVWYACDEFGHIKLMNPQRSTVWYACDEFGHIKLMNPQRSTVWY\",\n  \"method\": \"core\",\n  \"min_length\": 9,\n  \"max_length\": 20,\n  \"min_score\": 0.4,\n  \"top_n\": 10\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "epitopes",
+                "analyze",
+                ""
+              ]
+            },
+            "description": "Generic sequence with all standard amino acids"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "analysis_id",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

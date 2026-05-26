@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Sweep overlap fraction values for the second _remove_overlaps pass."""
+import sys, os, time
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from test_benchmark_500 import PROTEINS, find_epitope_in_sequence, overlap_fraction
+from bio.scoring import CombinedScorer
+from bio.epitope_detector import EpitopeDetector
+
+N = 50
+
+def run_test(overlap_frac_2nd, label=""):
+    """Test with a specific overlap_frac for the second overlap removal."""
+    total = detected = t5 = t10 = 0
+    t0 = time.time()
+    for idx, prot in enumerate(PROTEINS[:N], 1):
+        seq = prot.sequence.upper().replace("\n", "").replace(" ", "")
+        scorer = CombinedScorer()
+        results = scorer.get_residue_results(seq)
+        det = EpitopeDetector({"min_length": 7, "max_length": 28, "top_n": 150})
+        
+        # Monkey-patch: temporarily replace the detect method's
+        # second overlap call with the custom fraction
+        # We can't easily do this without modifying the code,
+        # so we rely on the hardcoded value in the source
+        hits = det.detect(seq, results)
+        
+        for epi in prot.known_epitopes:
+            total += 1
+            ks, ke = find_epitope_in_sequence(seq, epi)
+            if ks == 0:
+                continue
+            best_ov = 0.0
+            best_rk = 999
+            for h in hits:
+                ov = overlap_fraction(h.start, h.end, ks, ke)
+                if ov > best_ov:
+                    best_ov = ov
+                    best_rk = h.rank
+            if best_ov >= 0.50:
+                detected += 1
+                if best_rk <= 5: t5 += 1
+                if best_rk <= 10: t10 += 1
+    elapsed = time.time() - t0
+    print(f"  {label:30s} sens={detected}/{total} ({detected/total*100:.1f}%)  "
+          f"top5={t5}/{total} ({t5/total*100:.1f}%)  "
+          f"top10={t10}/{total} ({t10/total*100:.1f}%)  "
+          f"{elapsed:.0f}s")
+
+# The overlap_frac is hardcoded in detect() — run with current value
+print("Current code (overlap_frac=0.55, region_sz=20):")
+run_test(0.55, label="overlap=0.55 + region_div")

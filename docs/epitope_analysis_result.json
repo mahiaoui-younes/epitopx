@@ -1,0 +1,88 @@
+{
+  "protein_id": 14,
+  "epitope_count": 7,
+  "sequence_header": "User_Input_Sequence",
+  "sequence_length": 314,
+  "method": "core",
+  "epitopes": [
+    {
+      "id": 43,
+      "protein_id": 14,
+      "epitope_id": 1,
+      "epitope_sequence": "YDSDGKESKSDHDKRPKDKK",
+      "method": "core",
+      "start": 152,
+      "end": 171,
+      "score": 0.8842098672964622,
+      "created_at": "2026-03-09T18:19:50.486350Z"
+    },
+    {
+      "id": 44,
+      "protein_id": 14,
+      "epitope_id": 2,
+      "epitope_sequence": "TSEEPKESDQTEEQKHEEPE",
+      "method": "core",
+      "start": 93,
+      "end": 112,
+      "score": 0.8679974772672903,
+      "created_at": "2026-03-09T18:19:50.490319Z"
+    },
+    {
+      "id": 45,
+      "protein_id": 14,
+      "epitope_id": 3,
+      "epitope_sequence": "EQKHEEPEASPAPEPVDEPA",
+      "method": "core",
+      "start": 105,
+      "end": 124,
+      "score": 0.7100190998092389,
+      "created_at": "2026-03-09T18:19:50.495042Z"
+    },
+    {
+      "id": 46,
+      "protein_id": 14,
+      "epitope_id": 4,
+      "epitope_sequence": "DKRPKDKKPFVPKTSQCCGS",
+      "method": "core",
+      "start": 164,
+      "end": 183,
+      "score": 0.6366361182529355,
+      "created_at": "2026-03-09T18:19:50.505262Z"
+    },
+    {
+      "id": 47,
+      "protein_id": 14,
+      "epitope_id": 5,
+      "epitope_sequence": "QPSTEPEELQ",
+      "method": "core",
+      "start": 71,
+      "end": 80,
+      "score": 0.6168243732376947,
+      "created_at": "2026-03-09T18:19:50.508788Z"
+    },
+    {
+      "id": 48,
+      "protein_id": 14,
+      "epitope_id": 6,
+      "epitope_sequence": "DPNDDQHPLD",
+      "method": "core",
+      "start": 35,
+      "end": 44,
+      "score": 0.5826079778467812,
+      "created_at": "2026-03-09T18:19:50.512208Z"
+    },
+    {
+      "id": 49,
+      "protein_id": 14,
+      "epitope_id": 7,
+      "epitope_sequence": "PIEPQQPTQPSTEPEELQ",
+      "method": "core",
+      "start": 63,
+      "end": 80,
+      "score": 0.5818179921924204,
+      "created_at": "2026-03-09T18:19:50.516773Z"
+    }
+  ],
+  "epitopes_table": "Top candidates:\n  Rank         Pos   Len   Score Sequence\n  ------------------------------------------------------------\n     1      152-171    20   0.8842  YDSDGKESKSDHDKRPKDKK\n     2      93-112    20   0.8680  TSEEPKESDQTEEQKHEEPE\n     3      105-124    20   0.7100  EQKHEEPEASPAPEPVDEPA\n     4      164-183    20   0.6366  DKRPKDKKPFVPKTSQCCGS\n     5      71-80    10   0.6168  QPSTEPEELQ\n     6      35-44    10   0.5826  DPNDDQHPLD\n     7      63-80    18   0.5818  PIEPQQPTQPSTEPEELQ",
+  "message": "Analysis completed successfully"
+}

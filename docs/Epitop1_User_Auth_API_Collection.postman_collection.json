@@ -1,0 +1,229 @@
+{
+  "info": {
+    "_postman_id": "epitop1-auth-system",
+    "name": "EpiTop1 - User Authentication & Protein Permissions",
+    "description": "Complete API collection with user authentication, token-based access, and protein permissions (public/private)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 AUTHENTIFICATION",
+      "item": [
+        {
+          "name": "1. Register New User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"newuser\", \"email\": \"newuser@example.com\", \"password\": \"pass123\", \"password_confirm\": \"pass123\"}"
+            },
+            "url": {"raw": "{{base_url}}/api/users/register/", "host": ["{{base_url}}"], "path": ["api", "users", "register", ""]}
+          }
+        },
+        {
+          "name": "2. Login (Get Token) - TestUser",
+          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) { pm.environment.set(\"user_token\", pm.response.json().token); }"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\": \"testuser\", \"password\": \"test123\"}"},
+            "url": {"raw": "{{base_url}}/api/users/login/", "host": ["{{base_url}}"], "path": ["api", "users", "login", ""]}
+          }
+        },
+        {
+          "name": "3. Login (Get Token) - Admin",
+          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) { pm.environment.set(\"admin_token\", pm.response.json().token); }"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\": \"admin\", \"password\": \"admin123\"}"},
+            "url": {"raw": "{{base_url}}/api/users/login/", "host": ["{{base_url}}"], "path": ["api", "users", "login", ""]}
+          }
+        },
+        {
+          "name": "4. Get Profile (Current User)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/users/profile/", "host": ["{{base_url}}"], "path": ["api", "users", "profile", ""]}
+          }
+        },
+        {
+          "name": "5. Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Token {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/users/logout/", "host": ["{{base_url}}"], "path": ["api", "users", "logout", ""]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧬 PROTEINS - User Workflow",
+      "item": [
+        {
+          "name": "1. List All Visible Proteins (User)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/proteins/", "host": ["{{base_url}}"], "path": ["api", "proteins", ""]}
+          }
+        },
+        {
+          "name": "2. Create Private Protein (User)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{user_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"MyPrivateProtein\", \"sequence\": \"MKVLWAALLVTFLAGCAKAKAQVKVKALPDAQFEVVHKSENLSPLTSSVDAAMELNGKVVSDQQMQ\", \"organism\": \"Bacterial\", \"description\": \"My test protein\", \"method\": \"core\", \"is_public\": false}"
+            },
+            "url": {"raw": "{{base_url}}/api/proteins/", "host": ["{{base_url}}"], "path": ["api", "proteins", ""]}
+          }
+        },
+        {
+          "name": "3. View Own Private Protein",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/proteins/{{protein_id}}/", "host": ["{{base_url}}"], "path": ["api", "proteins", "{{protein_id}}", ""]}
+          }
+        },
+        {
+          "name": "4. Edit Own Protein",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Token {{user_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\"description\": \"Updated description\"}"},
+            "url": {"raw": "{{base_url}}/api/proteins/{{protein_id}}/", "host": ["{{base_url}}"], "path": ["api", "proteins", "{{protein_id}}", ""]}
+          }
+        },
+        {
+          "name": "5. Try Edit Admin's Protein (403 Forbidden)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Token {{user_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Hacked\"}"},
+            "url": {"raw": "{{base_url}}/api/proteins/1/", "host": ["{{base_url}}"], "path": ["api", "proteins", "1", ""]}
+          }
+        },
+        {
+          "name": "6. Delete Own Protein",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/proteins/{{protein_id}}/", "host": ["{{base_url}}"], "path": ["api", "proteins", "{{protein_id}}", ""]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧬 PROTEINS - Admin Workflow",
+      "item": [
+        {
+          "name": "1. List ALL Proteins (Admin sees all)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/proteins/", "host": ["{{base_url}}"], "path": ["api", "proteins", ""]}
+          }
+        },
+        {
+          "name": "2. Create PUBLIC Protein (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{admin_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"PublicHumanProtein\", \"sequence\": \"GIVEQCCTSICSLYQLENYCN\", \"organism\": \"Human\", \"description\": \"Public protein visible to all\",  \"is_public\": true}"
+            },
+            "url": {"raw": "{{base_url}}/api/proteins/", "host": ["{{base_url}}"], "path": ["api", "proteins", ""]}
+          }
+        },
+        {
+          "name": "3. Create PRIVATE Protein (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{admin_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"AdminPrivateProtein\", \"sequence\": \"MKVLWAALLVT\", \"organism\": \"Virus\", \"is_public\": false}"
+            },
+            "url": {"raw": "{{base_url}}/api/proteins/", "host": ["{{base_url}}"], "path": ["api", "proteins", ""]}
+          }
+        },
+        {
+          "name": "4. Edit Any Protein (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Token {{admin_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\"description\": \"Admin updated this protein\"}"},
+            "url": {"raw": "{{base_url}}/api/proteins/{{protein_id}}/", "host": ["{{base_url}}"], "path": ["api", "proteins", "{{protein_id}}", ""]}
+          }
+        },
+        {
+          "name": "5. Delete Any Protein (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{admin_token}}"}],
+            "url": {"raw": "{{base_url}}/api/proteins/{{protein_id}}/", "host": ["{{base_url}}"], "path": ["api", "proteins", "{{protein_id}}", ""]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 TESTS & SCENARIOS",
+      "item": [
+        {
+          "name": "Scenario 1: User Creates Private, Admin Creates Public",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {"raw": "{{base_url}}/", "host": ["{{base_url}}"]}
+          }
+        },
+        {
+          "name": "Scenario 2: Verify Permissions (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{base_url}}/", "host": ["{{base_url}}"]}
+          }
+        },
+        {
+          "name": "Scenario 3: User Can't See Private of Others",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{base_url}}/", "host": ["{{base_url}}"]}
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000", "type": "string"},
+    {"key": "user_token", "value": "", "type": "string"},
+    {"key": "admin_token", "value": "", "type": "string"},
+    {"key": "protein_id", "value": "1", "type": "string"}
+  ]
+}

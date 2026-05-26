@@ -1,0 +1,238 @@
+{
+  "info": {
+    "_postman_id": "msa-api-collection",
+    "name": "MSA API - Multiple Sequence Alignment",
+    "description": "Collection for testing the Multiple Sequence Alignment REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/msa/health/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "health", ""]
+        },
+        "description": "Check if MSA service is healthy and running"
+      },
+      "response": []
+    },
+    {
+      "name": "Basic MSA Alignment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": [\n    \"ATCGTACG\",\n    \"ATGGTACG\",\n    \"ATCGTTCG\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align", ""]
+        },
+        "description": "Perform basic multiple sequence alignment with default scoring parameters"
+      },
+      "response": []
+    },
+    {
+      "name": "MSA with Custom Scoring",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": [\n    \"ATCGTACG\",\n    \"ATGGTACG\",\n    \"ATCGTTCG\"\n  ],\n  \"match\": 2,\n  \"mismatch\": -2,\n  \"gap\": -3\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align", ""]
+        },
+        "description": "MSA with custom match, mismatch, and gap penalties"
+      },
+      "response": []
+    },
+    {
+      "name": "MSA - More Complex Example",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": [\n    \"ATCGATCGATCGATCG\",\n    \"ATCGATCGATCGATCG\",\n    \"ATGGATCGATCGATCG\",\n    \"ATCGATCGTTCGATCG\",\n    \"ATCGATCGATCGATCG\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align", ""]
+        },
+        "description": "MSA with 5 sequences of 16 bp each"
+      },
+      "response": []
+    },
+    {
+      "name": "FASTA Input Alignment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fasta_content\": \">seq1\\nATCGTACG\\n>seq2\\nATGGTACG\\n>seq3\\nATCGTTCG\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align-fasta/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align-fasta", ""]
+        },
+        "description": "Perform MSA using FASTA format input"
+      },
+      "response": []
+    },
+    {
+      "name": "FASTA Multiline Example",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fasta_content\": \">human_beta_globin\\nATGGTGCACCTGACTGATGAGGAGGTGCTGCCCCACAGGCGCCAGGGCGGCCACCGAGGTGCCCAGAGGCATGGGGTAA\\n>mouse_beta_globin\\nATGGTGCACCTGACTCCCGAGGAGGTGCTGCCCACAGGCGCCAGGGCGGCCGCCGAGGTGCCAGAGGCACAGGCGAA\\n>chicken_beta_globin\\nATGGTGCACCTGACTCATGAGGCGGTGCTGCCCCACAGGCGCCAGAACGGCCACCGAGCTGCCCGAGGCACAGGGTAA\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align-fasta/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align-fasta", ""]
+        },
+        "description": "Real-world example with globin sequences"
+      },
+      "response": []
+    },
+    {
+      "name": "Alignment Statistics",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json\""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": [\n    \"ATCGTACG\",\n    \"ATGGTACG\",\n    \"ATCGTTCG\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/statistics/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "statistics", ""]
+        },
+        "description": "Get statistics about the alignment including average identity and GC content"
+      },
+      "response": []
+    },
+    {
+      "name": "Error Test - Invalid DNA",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": [\n    \"ATCGX\",\n    \"ATCG\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align", ""]
+        },
+        "description": "Test error handling for invalid DNA character (X)"
+      },
+      "response": []
+    },
+    {
+      "name": "Error Test - Single Sequence",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": [\n    \"ATCG\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align", ""]
+        },
+        "description": "Test error handling when only 1 sequence provided (minimum is 2)"
+      },
+      "response": []
+    },
+    {
+      "name": "Error Test - Empty Sequences",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequences\": []\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/msa/align/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "msa", "align", ""]
+        },
+        "description": "Test error handling for empty sequences list"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}

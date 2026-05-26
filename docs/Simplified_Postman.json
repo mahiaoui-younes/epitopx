@@ -1,0 +1,44 @@
+{
+  "info": {
+    "_postman_id": "epitope-api-simple",
+    "name": "EpiTop1 API - Test Simple",
+    "description": "Requête simple pour tester l'API de prédiction d'épitopes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Tester Analyse d'Épitopes",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sequence\": \"MKFFYLFVLFPILLKFCECGPFLPLDRQLNPIDFDPNDDQHPLDPDQLIDQIEPSEQPAQQEPIEPQQPTQPSTEPEELQPETVTVEVPEPVTSEEPKESDQTEEQKHEEPEASPAPEPVDEPAVHATESTPTKASSSGDGAAVCHGKHHDYDSDGKESKSDHDKRPKDKKPFVPKTSQCCGSYFTNSYKITVAFDWWLCDKPWQYALTLLALFGFSLLSPCLKAYREVLRAKAIRSFIFDCFLTHLFLFLIAFCAYALDFLLMLVVMTFNVGVFFAVITGYTVGYLVSSLAYSTLRSHPARSSSFSRINEDCC\",\n  \"method\": \"core\",\n  \"min_length\": 9,\n  \"max_length\": 35,\n  \"min_score\": 0.3,\n  \"top_n\": 20\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/epitopes/analyze/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "epitopes",
+            "analyze",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

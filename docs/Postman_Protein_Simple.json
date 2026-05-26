@@ -1,0 +1,199 @@
+{
+  "info": {
+    "name": "Protein API - Auto Public for Admin",
+    "description": "Admin ajoute une protéine → automatiquement publique. User normal ajoute → automatiquement privée",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Login User Normal",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('user_token', jsonData.token);",
+              "    console.log('✓ User token:', jsonData.token.substring(0, 10) + '...');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"user1\", \"password\": \"password123\"}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/users/login/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "users", "login", ""]
+        }
+      }
+    },
+    {
+      "name": "2. Login Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('admin_token', jsonData.token);",
+              "    console.log('✓ Admin token:', jsonData.token.substring(0, 10) + '...');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"admin1\", \"password\": \"admin123\"}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/users/login/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "users", "login", ""]
+        }
+      }
+    },
+    {
+      "name": "3. User Normal - Ajoute Protéine (devient privée)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('User adds protein → is_public=false', function() {",
+              "    pm.expect(pm.response.code).to.equal(201);",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.is_public).to.equal(false);",
+              "    pm.environment.set('user_protein_id', jsonData.id);",
+              "    console.log('✓ Protéine créée: ID=' + jsonData.id + ', is_public=false');",
+              "});",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Token {{user_token}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"ProteinUserNormal\", \"sequence\": \"MVSKQSLLWNTFTPPLLLSGLLGWFQAKSDSAVEGVQVKVKALPDAQFEVVHSLAKWKRQTLGQHDFSAGEGLYTHMKALRPDEDRLSPLHSVYVDQWDWERVMGDGERQFSTLKSTVEAASQ\", \"description\": \"Protéine créée par user normal\"}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/proteins/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "proteins", ""]
+        }
+      }
+    },
+    {
+      "name": "4. Admin - Ajoute Protéine (devient publique)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Admin adds protein → is_public=true', function() {",
+              "    pm.expect(pm.response.code).to.equal(201);",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.is_public).to.equal(true);",
+              "    pm.environment.set('admin_protein_id', jsonData.id);",
+              "    console.log('✓ Protéine créée: ID=' + jsonData.id + ', is_public=true');",
+              "});",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Token {{admin_token}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"AdminPublicProtein\", \"sequence\": \"MVSKQSLLWNTFTPPLLLSGLLGWFQAKSDSAVEGVQVKVKALPDAQFEVVHSLAKWKRQTLGQHDFSAGEGLYTHMKALRPDEDRLSPLHSVYVDQWDWERVMGDGERQFSTLKSTVEAASQ\", \"description\": \"Protéine créée par admin (publique)\"}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/proteins/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "proteins", ""]
+        }
+      }
+    },
+    {
+      "name": "5. Voir Protéines Publiques (sans token)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/proteins/public_list/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "proteins", "public_list", ""]
+        }
+      }
+    },
+    {
+      "name": "6. User Normal - Voir ses protéines + publiques",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Authorization", "value": "Token {{user_token}}"}
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/proteins/my_proteins/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "proteins", "my_proteins", ""]
+        }
+      }
+    },
+    {
+      "name": "7. Admin - Voir TOUTES les protéines",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Authorization", "value": "Token {{admin_token}}"}
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/proteins/all_proteins/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "proteins", "all_proteins", ""]
+        }
+      }
+    }
+  ]
+}

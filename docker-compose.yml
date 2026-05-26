@@ -1,0 +1,95 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# EpitopX AI — Docker Compose (local production-like environment)
+# Usage:
+#   docker compose up --build           # first run
+#   docker compose up                   # subsequent runs
+#   docker compose down -v              # destroy everything incl. volumes
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-epitopx_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-epitopx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-epitopx2024}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-epitopx} -d ${POSTGRES_DB:-epitopx_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (cache + future Celery broker) ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Django backend ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL:        postgresql://${POSTGRES_USER:-epitopx}:${POSTGRES_PASSWORD:-epitopx2024}@db:5432/${POSTGRES_DB:-epitopx_db}
+      REDIS_URL:           redis://redis:6379/0
+      SECRET_KEY:          ${SECRET_KEY:?SECRET_KEY is required}
+      DJANGO_DEBUG:        ${DJANGO_DEBUG:-False}
+      ALLOWED_HOSTS:       ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      FRONTEND_URL:        ${FRONTEND_URL:-http://localhost:3333}
+      EMAIL_BACKEND:       ${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+      EMAIL_HOST:          ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT:          ${EMAIL_PORT:-587}
+      EMAIL_USE_TLS:       ${EMAIL_USE_TLS:-True}
+      EMAIL_HOST_USER:     ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      DEFAULT_FROM_EMAIL:  ${DEFAULT_FROM_EMAIL:-EpitopX <noreply@epitopx.ai>}
+    volumes:
+      - media_data:/app/media
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn --bind 0.0.0.0:8000
+               --workers 4 --threads 2
+               --timeout 120
+               --access-logfile - --error-logfile -
+               config.wsgi:application"
+
+  # ── Node.js frontend ───────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      REMOTE_API:   http://backend:8000
+      EPITOPE_API:  http://backend:8000
+      PORT:         3333
+    ports:
+      - "3333:3333"
+
+volumes:
+  pg_data:
+  redis_data:
+  media_data:

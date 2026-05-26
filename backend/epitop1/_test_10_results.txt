@@ -1,0 +1,215 @@
+==============================================================================================================
+  EpiTop1 -- 10-PROTEIN BENCHMARK: Bio vs Bio+IEDB
+==============================================================================================================
+
+--------------------------------------------------------------------------------------------------------------
+  [1/10] Theileria annulata TaSP (CAC87893.1)  --  281 aa
+  Surface protein — validated epitope in hydrophilic repeat region.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  36 predictions (1.3s)
+  IEDB: 40 predictions (52.1s)
+
+  Epitope: SEEPKESDQTEEQKHEEPEASPAPEPVDEPAVHA   pos 96-129
+    Bio:  FOUND rank 3 (74%)
+    IEDB: FOUND rank 2 (74%)
+
+--------------------------------------------------------------------------------------------------------------
+  [2/10] SARS-CoV-2 Spike RBD (P0DTC2 (319-541))  --  223 aa
+  Receptor-binding domain — epitopes from convalescent sera (IEDB).
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  28 predictions (1.1s)
+  IEDB: 42 predictions (50.9s)
+
+  Epitope: YAWNRKRISNCVADY                      pos 33-47
+    Bio:  FOUND rank 8 (87%)
+    IEDB: FOUND rank 7 (87%)
+  Epitope: GDEVRQIAPGQTGKI                      pos 86-100
+    Bio:  FOUND rank 1 (100%)
+    IEDB: FOUND rank 2 (100%)
+  Epitope: LFRKSNLKPFERDIS                      pos 137-151
+    Bio:  FOUND rank 3 (100%)
+    IEDB: FOUND rank 9 (80%)
+  Epitope: SYGFQPTNGVGYQPY                      pos 176-190
+    Bio:  FOUND rank 6 (93%)
+    IEDB: FOUND rank 4 (87%)
+
+--------------------------------------------------------------------------------------------------------------
+  [3/10] HIV-1 gp41 MPER (P04578 (fragment))  --  172 aa
+  Membrane-proximal external region — 2F5 and 4E10 neutralising epitopes.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  43 predictions (0.9s)
+  IEDB: 37 predictions (51.8s)
+
+  Epitope: ELDKWASLWNWF                         pos 151-162
+    Bio:  FOUND rank 15 (100%)
+    IEDB: FOUND rank 11 (100%)
+  Epitope: NWFNITNWLWYIK                        pos 160-172
+    Bio:  FOUND rank 23 (85%)
+    IEDB: FOUND rank 17 (69%)
+  Epitope: NEQELLELDKWASLW                      pos 145-159
+    Bio:  FOUND rank 38 (73%)
+    IEDB: FOUND rank 32 (73%)
+
+--------------------------------------------------------------------------------------------------------------
+  [4/10] Influenza H3N2 HA1 (P03435 (HA1 domain))  --  332 aa
+  Hemagglutinin HA1 — antigenic sites A-E.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  45 predictions (1.4s)
+  IEDB: 45 predictions (50.9s)
+
+  Epitope: SKAFSNCYPYDVPDY                      pos 91-105
+    Bio:  FOUND rank 8 (100%)
+    IEDB: FOUND rank 7 (100%)
+  Epitope: KSGSTYPVLNVTMPN                      pos 156-170
+    Bio:  FOUND rank 6 (100%)
+    IEDB: FOUND rank 6 (100%)
+  Epitope: SLPFQNVHPVTIGEC                      pos 224-238
+    Bio:  FOUND rank 9 (100%)
+    IEDB: FOUND rank 8 (73%)
+  Epitope: TQNGGSNACKRGPGS                      pos 131-145
+    Bio:  FOUND rank 2 (100%)
+    IEDB: FOUND rank 2 (100%)
+
+--------------------------------------------------------------------------------------------------------------
+  [5/10] P. falciparum CSP (P04925 (fragment))  --  391 aa
+  Circumsporozoite protein — (NANP)n repeat B-cell epitope.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  56 predictions (1.4s)
+  IEDB: 59 predictions (51.6s)
+
+  Epitope: NANPNVDPNANPNVD                      pos 105-119
+    Bio:  FOUND rank 27 (67%)
+    IEDB: FOUND rank 2 (87%)
+  Epitope: NKNNQGNGQGHNMPN                      pos 281-295
+    Bio:  FOUND rank 25 (67%)
+    IEDB: FOUND rank 34 (67%)
+  Epitope: EWSPCSVTCGNGIQV                      pos 338-352
+    Bio:  FOUND rank 36 (53%)
+    IEDB: missed (0%)  << IEDB REGRESSION
+
+--------------------------------------------------------------------------------------------------------------
+  [6/10] HBV Surface Antigen (P03138)  --  226 aa
+  HBV S antigen — 'a' determinant is major neutralising epitope.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  35 predictions (1.2s)
+  IEDB: 35 predictions (50.7s)
+
+  Epitope: CRTCMTTAQGTSMYP                      pos 121-135
+    Bio:  FOUND rank 2 (93%)
+    IEDB: FOUND rank 2 (93%)
+  Epitope: STTSTGPCRTCMTTA                      pos 114-128
+    Bio:  FOUND rank 32 (73%)
+    IEDB: FOUND rank 33 (73%)
+  Epitope: PSCCCTKPSDGNCTC                      pos 135-149
+    Bio:  FOUND rank 31 (87%)
+    IEDB: FOUND rank 2 (80%)
+
+--------------------------------------------------------------------------------------------------------------
+  [7/10] Dengue-2 E-DIII (P04724 (domain III))  --  227 aa
+  Envelope DIII — AB loop and FG loop neutralising epitopes.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  28 predictions (1.1s)
+  IEDB: 32 predictions (50.4s)
+
+  Epitope: GSWVDIVLEHGSCVT                      pos 18-32
+    Bio:  missed (40%)
+    IEDB: missed (27%)
+  Epitope: KGGIVTCAMFRCKK                       pos 110-123
+    Bio:  missed (36%)
+    IEDB: missed (29%)
+  Epitope: EIKITPQSSITEAEL                      pos 161-175
+    Bio:  FOUND rank 4 (80%)
+    IEDB: FOUND rank 4 (100%)
+
+--------------------------------------------------------------------------------------------------------------
+  [8/10] M. tuberculosis ESAT-6 (P0A564)  --  95 aa
+  Major TB diagnostic antigen — multiple linear B-cell epitopes.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  24 predictions (0.7s)
+  IEDB: 23 predictions (50.6s)
+
+  Epitope: EAAASAIQGNVTSI                       pos 12-25
+    Bio:  FOUND rank 3 (86%)
+    IEDB: FOUND rank 3 (86%)
+  Epitope: QWNFAGIEAAASAI                       pos 5-18
+    Bio:  missed (36%)
+    IEDB: missed (36%)
+  Epitope: NNALQNLARTISEA                       pos 66-79
+    Bio:  FOUND rank 2 (100%)
+    IEDB: FOUND rank 2 (100%)
+
+--------------------------------------------------------------------------------------------------------------
+  [9/10] Human B2M (P61769)  --  111 aa
+  MHC class I light chain — auto-antigen with mapped B-cell epitopes.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  24 predictions (0.9s)
+  IEDB: 23 predictions (50.5s)
+
+  Epitope: IQVYSRHPAENGKSN                      pos 27-41
+    Bio:  FOUND rank 1 (100%)
+    IEDB: FOUND rank 1 (100%)
+  Epitope: SGFHPSDIEVDLLKN                      pos 48-62
+    Bio:  FOUND rank 23 (60%)
+    IEDB: FOUND rank 2 (100%)
+
+--------------------------------------------------------------------------------------------------------------
+  [10/10] Tetanus Toxin C-frag (P04958 (fragment))  --  248 aa
+  Tetanus toxin heavy chain C-terminal — well-studied B-cell epitopes.
+
+  Querying IEDB API (7 methods)... done.
+  Bio:  56 predictions (1.3s)
+  IEDB: 55 predictions (50.1s)
+
+  Epitope: QNKAIIEQEIENLN                       pos 12-25
+    Bio:  FOUND rank 6 (100%)
+    IEDB: FOUND rank 6 (100%)
+  Epitope: KEFTLNIDKKSASM                       pos 75-88
+    Bio:  FOUND rank 11 (100%)
+    IEDB: FOUND rank 12 (100%)
+  Epitope: NAKMIGLYVKKINQ                       pos 186-199
+    Bio:  FOUND rank 33 (50%)
+    IEDB: missed (43%)  << IEDB REGRESSION
+
+==============================================================================================================
+  SUMMARY -- Bio vs Bio+IEDB
+==============================================================================================================
+
+  Protein                         Known   Bio Det  IEDB Det   Bio Top5  IEDB Top5
+  -----------------------------------------------------------------------------------------------
+  Theileria annulata TaSP             1         1         1          1          1
+  SARS-CoV-2 Spike RBD                4         4         4          2          2
+  HIV-1 gp41 MPER                     3         3         3          0          0
+  Influenza H3N2 HA1                  4         4         4          1          1
+  P. falciparum CSP                   3         3         2          0          1
+  HBV Surface Antigen                 3         3         3          1          2
+  Dengue-2 E-DIII                     3         1         1          1          1
+  M. tuberculosis ESAT-6              3         2         2          2          2
+  Human B2M                           2         2         2          1          2
+  Tetanus Toxin C-frag                3         3         2          0          0
+  -----------------------------------------------------------------------------------------------
+  TOTAL                              29        26        24          9         12
+
+  Sensitivity (>=50% overlap):
+    Bio:      26/29  (89.7%)
+    Bio+IEDB: 24/29  (82.8%)
+
+  Top-5 rate:
+    Bio:      9/29  (31.0%)
+    Bio+IEDB: 12/29  (41.4%)
+
+  Top-10 rate:
+    Bio:      15/29  (51.7%)
+    Bio+IEDB: 18/29  (62.1%)
+
+  >>> IEDB lost 2 detections (needs tuning).
+
+==============================================================================================================

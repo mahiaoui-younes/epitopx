@@ -1,0 +1,313 @@
+{
+  "info": {
+    "_postman_id": "dna-rna-protein-api",
+    "name": "DNA → RNA → Protein API",
+    "description": "Endpoints pour convertir ADN en ARN et Protéine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Conversions",
+      "item": [
+        {
+          "name": "Convert DNA to RNA to Protein",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dna_sequence\": \"ATGATGATGATG\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/conversions/convert/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "convert",
+                ""
+              ]
+            },
+            "description": "Convertir une séquence ADN en ARN et Protéine"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conversion History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/conversions/history/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "history",
+                ""
+              ]
+            },
+            "description": "Récupère l'historique de toutes les conversions"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "DNA Sequences",
+      "item": [
+        {
+          "name": "List All DNA Sequences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/dna/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dna",
+                ""
+              ]
+            },
+            "description": "Liste toutes les séquences ADN sauvegardées"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New DNA Sequence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gene Beta\",\n  \"sequence\": \"ATGATGATGATGATGATG\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/dna/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dna",
+                ""
+              ]
+            },
+            "description": "Créer une nouvelle séquence ADN"
+          },
+          "response": []
+        },
+        {
+          "name": "Get DNA Sequence by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/dna/1/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dna",
+                "1",
+                ""
+              ]
+            },
+            "description": "Récupère une séquence ADN spécifique par ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update DNA Sequence",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gene Beta Updated\",\n  \"sequence\": \"ATGATGATGATGATGATGATGATG\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/dna/1/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dna",
+                "1",
+                ""
+              ]
+            },
+            "description": "Modifier une séquence ADN existante"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete DNA Sequence",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/dna/1/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dna",
+                "1",
+                ""
+              ]
+            },
+            "description": "Supprimer une séquence ADN"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tests Examples",
+      "item": [
+        {
+          "name": "Test 1 - Simple Gene (ATG)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dna_sequence\": \"ATG\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/conversions/convert/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "convert",
+                ""
+              ]
+            },
+            "description": "ATG → AUG → M (Methionine)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test 2 - Longer Gene",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dna_sequence\": \"ATGGCCTAA\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/conversions/convert/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "convert",
+                ""
+              ]
+            },
+            "description": "ATG GCC TAA → AUG GCC UAA → M A * (stop codon)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test 3 - Invalid Sequence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dna_sequence\": \"ATGXYZ\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/conversions/convert/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversions",
+                "convert",
+                ""
+              ]
+            },
+            "description": "Test avec séquence invalide (doit retourner erreur 400)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

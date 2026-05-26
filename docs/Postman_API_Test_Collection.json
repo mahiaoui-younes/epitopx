@@ -1,0 +1,540 @@
+{
+  "info": {
+    "name": "EpiTop1 API - Complete Test Collection",
+    "description": "Complete collection for testing EpiTop1 API with User Authentication and Protein Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 AUTHENTICATION",
+      "item": [
+        {
+          "name": "1️⃣ Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"password_confirm\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/users/register/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "register",
+                ""
+              ]
+            },
+            "description": "Create a new user account\n\n**Status Expected:**\n- 201: User created successfully\n- 400: Username already exists or password mismatch"
+          },
+          "response": []
+        },
+        {
+          "name": "2️⃣ Login - Get Token (TestUser)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"test123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/users/login/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "login",
+                ""
+              ]
+            },
+            "description": "Login as regular user (testuser)\n\n**Response includes:**\n- token: Copy this for Authorization header\n- is_admin: false\n- username: testuser"
+          },
+          "response": []
+        },
+        {
+          "name": "2️⃣ Login - Get Token (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/users/login/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "login",
+                ""
+              ]
+            },
+            "description": "Login as admin user\n\n**Response includes:**\n- token: Copy this for Authorization header\n- is_admin: true\n- username: admin"
+          },
+          "response": []
+        },
+        {
+          "name": "3️⃣ Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/users/profile/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "profile",
+                ""
+              ]
+            },
+            "description": "Get current logged-in user profile\n\n**Headers needed:**\n- Authorization: Token abc123xyz...\n\n**Status Expected:**\n- 200: Success\n- 401: Unauthorized (no token)"
+          },
+          "response": []
+        },
+        {
+          "name": "4️⃣ Logout - Delete Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/users/logout/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "logout",
+                ""
+              ]
+            },
+            "description": "Logout and invalidate token\n\n**Headers needed:**\n- Authorization: Token abc123xyz...\n\n**Status Expected:**\n- 200: Logout success\n- 401: Token already invalid"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧬 PROTEINS - LIST & CREATE",
+      "item": [
+        {
+          "name": "LIST All Proteins (Filtered by Role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                ""
+              ]
+            },
+            "description": "List proteins based on user role:\n\n**If User:**\n- See: public proteins + own proteins\n- Count: ~6 (4 public + 2 own)\n\n**If Admin:**\n- See: ALL proteins (public + private)\n- Count: ~13 (all)\n\n**Status Expected:**\n- 200: Success\n- 401: Unauthorized"
+          },
+          "response": []
+        },
+        {
+          "name": "CREATE Protein - User (Private)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"MyProtein\",\n  \"sequence\": \"MVSKQSLLWNTFTPPLLLSGLLGWFQAKSDSAVEGVQVKVKALPDAQFEVV\",\n  \"description\": \"My test protein (will be private)\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                ""
+              ]
+            },
+            "description": "Create a new protein as regular user\n\n**Result:**\n- is_public: ALWAYS false (users cannot create public)\n- created_by: testuser\n- Status: 201 Created\n\n**Status Expected:**\n- 201: Created successfully\n- 400: Missing fields\n- 401: Unauthorized"
+          },
+          "response": []
+        },
+        {
+          "name": "CREATE Protein - Admin (Public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_ADMIN_TOKEN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AdminPublicProtein\",\n  \"sequence\": \"MVSKQSLLWNTFTPPLLLSGLLGWFQAKSDSAVEGVQVKVKALPDAQFEVVHSLAKWKRQTLGQHDFSAGEGLYTHMKALRPDEDRLSPLHSVYVDQWDWERVMGDGERQFSTLKSTVEAAVBAT\",\n  \"description\": \"Public protein created by admin\",\n  \"is_public\": true\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                ""
+              ]
+            },
+            "description": "Create a new protein as admin\n\n**Result:**\n- is_public: Can be TRUE or FALSE (admin chooses)\n- created_by: admin\n- Status: 201 Created\n\n**Status Expected:**\n- 201: Created successfully\n- 400: Missing fields\n- 401: Unauthorized"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔍 PROTEINS - VIEW & EDIT",
+      "item": [
+        {
+          "name": "GET Protein by ID (Own)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/1/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                "1",
+                ""
+              ]
+            },
+            "description": "Get specific protein details\n\n**If You Own It:**\n- Status: 200 OK\n- See all details\n\n**If It's Public:**\n- Status: 200 OK\n- See all details\n\n**If Private & Not Yours:**\n- Status: 404 Not Found\n\n**Replace 1 with actual protein ID**"
+          },
+          "response": []
+        },
+        {
+          "name": "UPDATE Protein - Owner Only",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"UpdatedProteinName\",\n  \"sequence\": \"MVSKQSLLWNTFTPPLLLSGLLGWFQAKSDSAVEGVQVKVKALPDAQFEVV\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/1/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                "1",
+                ""
+              ]
+            },
+            "description": "Update a protein (owner or admin only)\n\n**If You Own It:**\n- Status: 200 OK\n- Update successful\n\n**If Not Owner & Not Admin:**\n- Status: 403 Forbidden\n- Access denied\n\n**Replace 1 with actual protein ID**"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Protein - Owner Only",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/1/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                "1",
+                ""
+              ]
+            },
+            "description": "Delete a protein (owner or admin only)\n\n**If You Own It:**\n- Status: 204 No Content\n- Protein deleted\n\n**If Not Owner & Not Admin:**\n- Status: 403 Forbidden\n- Access denied\n\n**Replace 1 with actual protein ID**"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 COMPLETE WORKFLOW TEST",
+      "item": [
+        {
+          "name": "[1] Login TestUser",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"test123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/users/login/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "login",
+                ""
+              ]
+            },
+            "description": "Step 1: Login as testuser\n✅ Copy token from response\n➡️ Go to step 2"
+          },
+          "response": []
+        },
+        {
+          "name": "[2] Create Private Protein",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TestUserProtein\",\n  \"sequence\": \"MVSKQSLLWNTFTPPLLLSGLLGWFQ\",\n  \"description\": \"My private protein\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                ""
+              ]
+            },
+            "description": "Step 2: Create protein as testuser\n✅ Protein created as PRIVATE (is_public=false)\n✅ Copy protein ID from response\n➡️ Go to step 3"
+          },
+          "response": []
+        },
+        {
+          "name": "[3] List Proteins (User View)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token YOUR_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                ""
+              ]
+            },
+            "description": "Step 3: List proteins as testuser\n✅ See public proteins (4)\n✅ See own private protein (1)\n✅ Total: ~6 proteins\n➡️ Go to step 4"
+          },
+          "response": []
+        },
+        {
+          "name": "[4] Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/users/login/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "login",
+                ""
+              ]
+            },
+            "description": "Step 4: Login as admin\n✅ Copy admin token from response\n➡️ Go to step 5"
+          },
+          "response": []
+        },
+        {
+          "name": "[5] List Proteins (Admin View)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token ADMIN_TOKEN_HERE"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/proteins/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "proteins",
+                ""
+              ]
+            },
+            "description": "Step 5: List proteins as admin\n✅ See ALL proteins (public + private)\n✅ Include testuser's private protein\n✅ Total: ~13 proteins\n➡️ Workflow complete!"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "testuser_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

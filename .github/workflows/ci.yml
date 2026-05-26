@@ -1,0 +1,136 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# EpitopX AI — CI/CD Pipeline (GitHub Actions)
+# Runs on every push / PR to main:
+#   1. lint (flake8 + eslint)
+#   2. backend unit & integration tests
+#   3. build Docker images
+#   4. deploy to Render (main branch only)
+# ─────────────────────────────────────────────────────────────────────────────
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION:   "20"
+
+jobs:
+  # ── Backend lint + tests ──────────────────────────────────────────────────
+  backend-test:
+    name: Backend — Lint & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB:       test_db
+          POSTGRES_USER:     epitopx
+          POSTGRES_PASSWORD: epitopx2024
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://epitopx:epitopx2024@localhost:5432/test_db
+      SECRET_KEY:   ci-test-secret-key-not-for-production
+      DJANGO_DEBUG: "False"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt flake8
+
+      - name: Lint (flake8)
+        working-directory: backend
+        run: |
+          flake8 api/ bioinformatics/ config/ \
+            --max-line-length=120 \
+            --extend-ignore=E501,W503 \
+            --exclude=migrations,__pycache__
+
+      - name: Run migrations
+        working-directory: backend
+        run: python manage.py migrate --noinput
+
+      - name: Run tests
+        working-directory: backend
+        run: python manage.py test api.tests --verbosity=2
+
+  # ── Frontend lint ─────────────────────────────────────────────────────────
+  frontend-lint:
+    name: Frontend — Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint (ESLint)
+        working-directory: frontend
+        run: npx eslint js/ --ext .js --max-warnings 0 || true   # warn-only for now
+
+  # ── Docker build ─────────────────────────────────────────────────────────
+  docker-build:
+    name: Docker — Build images
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-lint]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: |
+          docker build backend/ \
+            --build-arg SECRET_KEY=build-check \
+            --build-arg DJANGO_DEBUG=False \
+            -t epitopx-backend:${{ github.sha }}
+
+      - name: Build frontend image
+        run: docker build frontend/ -t epitopx-frontend:${{ github.sha }}
+
+  # ── Deploy to Render ──────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Trigger Render deploy (backend)
+        if: ${{ secrets.RENDER_BACKEND_HOOK != '' }}
+        run: |
+          curl -sS --fail -X POST "${{ secrets.RENDER_BACKEND_HOOK }}"
+
+      - name: Trigger Render deploy (frontend)
+        if: ${{ secrets.RENDER_FRONTEND_HOOK != '' }}
+        run: |
+          curl -sS --fail -X POST "${{ secrets.RENDER_FRONTEND_HOOK }}"
