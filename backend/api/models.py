@@ -86,10 +86,76 @@ class AuditLog(models.Model):
 # ─────────────────────────────────────────────────────────────────────────────
 
 PLAN_CHOICES = [
-    ('free',    'Free'),
-    ('pro',     'Pro'),
-    ('team',    'Team'),
+    ('free',       'Free'),
+    ('starter',    'Starter'),
+    ('pro',        'Pro'),
+    ('team',       'Team'),
     ('enterprise', 'Enterprise'),
+]
+
+# Public plan catalog with pricing shown to users
+PLAN_CATALOG = [
+    {
+        'id': 'free',
+        'name': 'Free',
+        'price': 0,
+        'currency': 'USD',
+        'billing': 'forever',
+        'description': 'Perfect to get started',
+        'proteins': 10,
+        'analyses_month': 20,
+        'agent_messages_month': 10,
+        'features': ['10 proteins', '20 analyses/month', '10 AI agent messages/month', 'Public database access', 'Basic epitope prediction'],
+    },
+    {
+        'id': 'starter',
+        'name': 'Starter',
+        'price': 10,
+        'currency': 'USD',
+        'billing': 'month',
+        'description': 'For individual researchers',
+        'proteins': 50,
+        'analyses_month': 100,
+        'agent_messages_month': 50,
+        'features': ['50 proteins', '100 analyses/month', '50 AI agent messages/month', 'All Free features', 'MSA analysis', 'CSV export'],
+    },
+    {
+        'id': 'pro',
+        'name': 'Pro',
+        'price': 25,
+        'currency': 'USD',
+        'billing': 'month',
+        'description': 'For power users',
+        'proteins': 200,
+        'analyses_month': 500,
+        'agent_messages_month': 200,
+        'features': ['200 proteins', '500 analyses/month', '200 AI agent messages/month', 'All Starter features', 'Priority support', 'API access'],
+        'popular': True,
+    },
+    {
+        'id': 'team',
+        'name': 'Team',
+        'price': 50,
+        'currency': 'USD',
+        'billing': 'month',
+        'description': 'For research teams',
+        'proteins': 500,
+        'analyses_month': 2000,
+        'agent_messages_month': 500,
+        'features': ['500 proteins', '2000 analyses/month', '500 AI agent messages/month', 'All Pro features', 'Team collaboration', 'Advanced analytics'],
+    },
+    {
+        'id': 'enterprise',
+        'name': 'Enterprise',
+        'price': 100,
+        'currency': 'USD',
+        'billing': 'month',
+        'description': 'For large organisations',
+        'proteins': 9999,
+        'analyses_month': 99999,
+        'agent_messages_month': 9999,
+        'features': ['Unlimited proteins', 'Unlimited analyses', 'Unlimited AI agent messages', 'All Team features', 'Dedicated support', 'Custom integrations', 'SLA guarantee'],
+    },
 ]
 
 SUBSCRIPTION_STATUS = [
@@ -115,16 +181,18 @@ class Subscription(models.Model):
     updated_at      = models.DateTimeField(auto_now=True)
 
     # Usage quotas (enforced in views via check_quota())
-    proteins_used   = models.PositiveIntegerField(default=0)
-    analyses_used   = models.PositiveIntegerField(default=0)
-    analyses_month  = models.PositiveIntegerField(default=0)
-    quota_reset_at  = models.DateTimeField(null=True, blank=True)
+    proteins_used          = models.PositiveIntegerField(default=0)
+    analyses_used          = models.PositiveIntegerField(default=0)
+    analyses_month         = models.PositiveIntegerField(default=0)
+    agent_messages_month   = models.PositiveIntegerField(default=0)
+    quota_reset_at         = models.DateTimeField(null=True, blank=True)
 
     PLAN_LIMITS = {
-        'free':       {'proteins': 10,   'analyses_month': 20},
-        'pro':        {'proteins': 100,  'analyses_month': 500},
-        'team':       {'proteins': 500,  'analyses_month': 2000},
-        'enterprise': {'proteins': 9999, 'analyses_month': 99999},
+        'free':       {'proteins': 10,   'analyses_month': 20,    'agent_messages_month': 10},
+        'starter':    {'proteins': 50,   'analyses_month': 100,   'agent_messages_month': 50},
+        'pro':        {'proteins': 200,  'analyses_month': 500,   'agent_messages_month': 200},
+        'team':       {'proteins': 500,  'analyses_month': 2000,  'agent_messages_month': 500},
+        'enterprise': {'proteins': 9999, 'analyses_month': 99999, 'agent_messages_month': 9999},
     }
 
     def get_limit(self, resource: str) -> int:
@@ -188,11 +256,13 @@ METHOD_CHOICES = [
 
 class Protein(models.Model):
     name        = models.CharField(max_length=200, db_index=True)
+    fullname    = models.CharField(max_length=500, blank=True)
     sequence    = models.TextField()
     organism    = models.CharField(max_length=200, blank=True, db_index=True)
     description = models.TextField(blank=True)
     method      = models.CharField(max_length=20, choices=METHOD_CHOICES, default='core')
     is_public   = models.BooleanField(default=False)
+    pdb_file    = models.FileField(upload_to='proteins/pdb/', null=True, blank=True)
     created_at  = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at  = models.DateTimeField(auto_now=True)
     created_by  = models.ForeignKey(

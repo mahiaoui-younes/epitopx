@@ -41,9 +41,9 @@ services:
         fromDatabase:
           name: epitopx-db
           property: connectionString
-      # Set this AFTER the frontend is deployed:
-      # - key: FRONTEND_URL
-      #   value: https://epitopx-frontend.onrender.com
+      # ⚠️  After the frontend is deployed, set this to your frontend URL:
+      - key: FRONTEND_URL
+        value: https://epitopx-frontend.onrender.com
       - key: PYTHON_VERSION
         value: "3.11.0"
 
@@ -60,13 +60,13 @@ services:
         value: production
       - key: PORT
         value: "10000"
-      # Set these AFTER the backend is deployed:
-      # - key: REMOTE_API
-      #   value: https://epitopx-backend.onrender.com
-      # - key: EPITOPE_API
-      #   value: https://epitopx-backend.onrender.com
-      # - key: ALIGNMENT_API
-      #   value: https://epitopx-backend.onrender.com
+      # ⚠️  After the backend is deployed, set these to your backend URL:
+      - key: REMOTE_API
+        value: https://epitopx-backend.onrender.com
+      - key: EPITOPE_API
+        value: https://epitopx-backend.onrender.com
+      - key: ALIGNMENT_API
+        value: https://epitopx-backend.onrender.com
       # Optional — LLM integration:
       # - key: LLM_PROVIDER
       #   value: groq

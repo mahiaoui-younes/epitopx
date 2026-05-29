@@ -229,6 +229,9 @@ SIMPLE_JWT = {
 
 # ── Security headers (production) ─────────────────────────────────────────────
 if not DEBUG:
+    # Trust Render's (and other reverse-proxy) SSL termination header
+    # Without this, SECURE_SSL_REDIRECT causes an infinite redirect loop on Render.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = 31536000          # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True

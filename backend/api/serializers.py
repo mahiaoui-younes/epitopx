@@ -67,7 +67,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         fields = [
             'plan', 'status', 'proteins_used', 'analyses_used',
-            'analyses_month', 'current_period_end', 'plan_limits',
+            'analyses_month', 'agent_messages_month', 'current_period_end', 'plan_limits',
         ]
         read_only_fields = fields
 
@@ -116,13 +116,14 @@ class ConversionResponseSerializer(serializers.Serializer):
 class ProteinSerializer(serializers.ModelSerializer):
     created_by_username = serializers.SerializerMethodField()
     epitope_count       = serializers.IntegerField(read_only=True)
+    pdb_file            = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = Protein
         fields = [
-            'id', 'name', 'sequence', 'organism', 'description',
+            'id', 'name', 'fullname', 'sequence', 'organism', 'description',
             'method', 'is_public', 'created_at', 'updated_at',
-            'created_by', 'created_by_username', 'epitope_count',
+            'created_by', 'created_by_username', 'epitope_count', 'pdb_file',
         ]
         read_only_fields = [
             'id', 'created_at', 'updated_at',

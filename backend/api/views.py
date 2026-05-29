@@ -3,7 +3,7 @@ from datetime import datetime
 import statistics
 
 from django.contrib.auth import authenticate, get_user_model
-from django.db.models import Count
+from django.db.models import Count, F
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -361,6 +361,81 @@ class UserViewSet(viewsets.ViewSet):
             return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'Email verified successfully.'}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='agent-quota')
+    def agent_quota(self, request):
+        """Return the authenticated user's AI agent message quota."""
+        from .models import Subscription
+        sub, _ = Subscription.objects.get_or_create(
+            user=request.user,
+            defaults={'plan': 'free', 'status': 'active'},
+        )
+        limit     = sub.get_limit('agent_messages_month')
+        used      = sub.agent_messages_month
+        remaining = max(0, limit - used)
+        return Response({
+            'plan':      sub.plan,
+            'used':      used,
+            'limit':     limit,
+            'remaining': remaining,
+            'exhausted': remaining == 0,
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='track-agent-message')
+    def track_agent_message(self, request):
+        """Increment the agent message counter by 1 and return updated quota."""
+        from .models import Subscription
+        sub, _ = Subscription.objects.get_or_create(
+            user=request.user,
+            defaults={'plan': 'free', 'status': 'active'},
+        )
+        limit = sub.get_limit('agent_messages_month')
+        if sub.agent_messages_month >= limit:
+            return Response(
+                {'error': 'Agent message quota exhausted. Please upgrade your plan.',
+                 'remaining': 0, 'used': sub.agent_messages_month, 'limit': limit},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        sub.agent_messages_month = F('agent_messages_month') + 1
+        sub.save(update_fields=['agent_messages_month', 'updated_at'])
+        sub.refresh_from_db()
+        remaining = max(0, limit - sub.agent_messages_month)
+        return Response({
+            'used':      sub.agent_messages_month,
+            'limit':     limit,
+            'remaining': remaining,
+            'exhausted': remaining == 0,
+        })
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='plans')
+    def plans(self, request):
+        """Return all available subscription plans with pricing."""
+        from .models import PLAN_CATALOG
+        return Response({'plans': PLAN_CATALOG})
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='upgrade-plan')
+    def upgrade_plan(self, request):
+        """Upgrade or change the current user's subscription plan."""
+        from .models import Subscription, PLAN_CHOICES
+        valid_plans = [p[0] for p in PLAN_CHOICES]
+        new_plan = request.data.get('plan', '').strip()
+        if new_plan not in valid_plans:
+            return Response(
+                {'error': f'Invalid plan. Choose from: {", ".join(valid_plans)}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        sub, _ = Subscription.objects.get_or_create(
+            user=request.user,
+            defaults={'plan': 'free', 'status': 'active'},
+        )
+        old_plan = sub.plan
+        sub.plan   = new_plan
+        sub.status = 'active'
+        sub.save(update_fields=['plan', 'status', 'updated_at'])
+        return Response({
+            'message': f'Plan changed from {old_plan} to {new_plan}.',
+            'subscription': SubscriptionSerializer(sub).data,
+        })
+
 
 # ============================================================================
 # PROTEIN VIEWSET
@@ -380,7 +455,7 @@ class ProteinViewSet(viewsets.ModelViewSet):
         base_qs = Protein.objects.select_related('created_by').annotate(
             epitope_count=Count('epitopes')
         ).order_by('-created_at')
-        if getattr(user, 'is_admin', False):
+        if getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False):
             return base_qs.all()
         return base_qs.filter(is_public=True) | base_qs.filter(created_by=user)
     
@@ -454,22 +529,22 @@ class ProteinViewSet(viewsets.ModelViewSet):
         """Auto-assign created_by and is_public based on user role"""
         user = self.request.user
         
-        # Admin proteins are public, user proteins are private
-        is_public = user.is_admin
+        # Admin/superuser proteins are public; regular user proteins are private
+        is_public = bool(getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False))
         serializer.save(created_by=user, is_public=is_public)
     
     def perform_update(self, serializer):
         """Only owner or admin can update."""
         protein = self.get_object()
         user = self.request.user
-        if protein.created_by != user and not user.is_admin:
+        if protein.created_by != user and not (getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False)):
             raise PermissionDenied('You can only edit your own proteins.')
         serializer.save()
 
     def perform_destroy(self, instance):
         """Only owner or admin can delete."""
         user = self.request.user
-        if instance.created_by != user and not user.is_admin:
+        if instance.created_by != user and not (getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False)):
             raise PermissionDenied('You can only delete your own proteins.')
         instance.delete()
 
@@ -1021,3 +1096,55 @@ class BioinformaticsViewSet(viewsets.ViewSet):
                 return Response({'error': 'seq1 and seq2 (or id1 and id2) are required'}, status=status.HTTP_400_BAD_REQUEST)
         result = compute_similarity(str(seq1).upper(), str(seq2).upper())
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='sequence-to-uniprot', permission_classes=[AllowAny])
+    def sequence_to_uniprot(self, request):
+        """Given an amino-acid sequence, return the best matching UniProt accession.
+
+        Strategy:
+          1. Compute CRC64 checksum of the sequence (same algorithm UniProt uses).
+          2. Search UniParc by checksum – returns an exact match list of UniProtKB accessions.
+          3. Pick the best accession: prefer 6-char reviewed (Swiss-Prot) entries
+             (accessions starting with P, Q, O with no version suffix).
+        """
+        import requests as _req
+        from Bio.SeqUtils.CheckSum import crc64
+
+        sequence = request.data.get('sequence', '').strip().upper()
+        sequence = ''.join(c for c in sequence if c.isalpha())  # strip whitespace/numbers
+        if len(sequence) < 5:
+            return Response({'error': 'sequence too short'}, status=status.HTTP_400_BAD_REQUEST)
+
+        TIMEOUT = 20
+        HEADERS = {'Accept': 'application/json', 'User-Agent': 'EpitopX/1.0'}
+
+        # ── Step 1: CRC64-based exact lookup via UniParc ──────────────────────
+        try:
+            cksum = crc64(sequence).replace('CRC-', '')
+            r = _req.get(
+                'https://rest.uniprot.org/uniparc/search',
+                params={'query': f'checksum:{cksum}', 'format': 'json', 'size': 1},
+                headers=HEADERS, timeout=TIMEOUT,
+            )
+            if r.status_code == 200:
+                results = r.json().get('results', [])
+                if results:
+                    accessions = results[0].get('uniProtKBAccessions', [])
+                    # Prefer Swiss-Prot (reviewed) entries: P/Q/O-starting 6-char accessions
+                    def _score(acc):
+                        a = acc.split('.')[0]   # strip version suffix
+                        if len(a) == 6 and a[0] in ('P', 'Q', 'O'):
+                            return 0
+                        if '.' not in acc and len(acc) == 6:
+                            return 1
+                        return 2
+
+                    clean = [a for a in accessions if '.' not in a]
+                    if clean:
+                        accessions = clean
+                    best = sorted(accessions, key=_score)[0].split('.')[0]
+                    return Response({'accession': best})
+        except Exception:
+            pass
+
+        return Response({'error': 'No UniProt match found for this sequence'}, status=status.HTTP_404_NOT_FOUND)
