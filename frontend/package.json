@@ -1,0 +1,18 @@
+{
+  "name": "fin_etude",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "npm run build:css",
+    "build:css": "tailwindcss -i ./css/styles.css -o ./css/tailwind.build.css --minify",
+    "dev:css": "tailwindcss -i ./css/styles.css -o ./css/tailwind.build.css --watch",
+    "test": "node tests/test-utils.js"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
