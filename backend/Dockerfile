@@ -50,8 +50,10 @@ USER epitopx
 # Collect static files at build time (requires SECRET_KEY env var)
 ARG SECRET_KEY=build-time-dummy-key
 ARG DJANGO_DEBUG=False
+ARG DATABASE_URL=sqlite:////tmp/build_dummy.db
 ENV SECRET_KEY=${SECRET_KEY} \
     DJANGO_DEBUG=${DJANGO_DEBUG} \
+    DATABASE_URL=${DATABASE_URL} \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
