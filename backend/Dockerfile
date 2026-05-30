@@ -59,20 +59,14 @@ ENV SECRET_KEY=${SECRET_KEY} \
 
 RUN python manage.py collectstatic --noinput
 
+# Make start script executable
+RUN chmod +x /app/start.sh
+
 EXPOSE 8000
 
 # Healthcheck — lightweight Django check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')" || exit 1
 
-# Gunicorn for production (Linux/Render)
-CMD ["gunicorn", \
-     "--bind",            "0.0.0.0:8000", \
-     "--workers",         "4", \
-     "--worker-class",    "sync", \
-     "--threads",         "2", \
-     "--timeout",         "120", \
-     "--keep-alive",      "5", \
-     "--access-logfile",  "-", \
-     "--error-logfile",   "-", \
-     "config.wsgi:application"]
+# Start: migrate, create superuser, then start gunicorn
+CMD ["/bin/sh", "/app/start.sh"]
