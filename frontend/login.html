@@ -159,6 +159,11 @@
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-900" data-i18n="login.welcome">Bienvenue</h1>
           <p class="text-gray-500 text-sm mt-1" data-i18n="login.desc">Connectez-vous à votre compte pour continuer</p>
+          <!-- Server status badge -->
+          <div id="server-status-badge" class="hidden mt-2 inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+            <span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span>Serveur en démarrage...</span>
+          </div>
         </div>
 
         <!-- Login Form -->
@@ -327,6 +332,46 @@
   <script src="js/i18n.js"></script>
   <script src="js/auth.js"></script>
   <script>
+    // --- Backend wakeup logic ---
+    let _wakeupTimer = null;
+    let _retryCountdown = null;
+
+    function showWakeupBanner(secondsLeft) {
+      const banner = document.getElementById('login-error-banner');
+      const text = document.getElementById('login-error-text');
+      banner.classList.remove('hidden');
+      // Change color to amber/yellow for "waking up" state
+      banner.style.background = 'rgba(251,191,36,0.1)';
+      banner.style.borderColor = 'rgba(251,191,36,0.5)';
+      banner.style.color = '#92400e';
+      text.innerHTML = `⏳ Le serveur démarre (mode gratuit Render)... Nouvelle tentative dans <strong id="countdown-sec">${secondsLeft}</strong>s. Veuillez patienter.`;
+    }
+
+    function hideWakeupBanner() {
+      const banner = document.getElementById('login-error-banner');
+      banner.style.background = '';
+      banner.style.borderColor = '';
+      banner.style.color = '';
+    }
+
+    function showErrorBanner(msg) {
+      hideWakeupBanner();
+      const banner = document.getElementById('login-error-banner');
+      const text = document.getElementById('login-error-text');
+      banner.classList.remove('hidden');
+      text.textContent = msg;
+    }
+
+    async function doLoginRequest(username, password) {
+      const res = await fetch('/api/users/login/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      return { res, data };
+    }
+
     async function handleLogin(e) {
       e.preventDefault();
       const username = document.getElementById('login-username').value.trim();
@@ -350,48 +395,131 @@
       const btn = document.getElementById('login-btn');
       const btnText = document.getElementById('login-btn-text');
       const spinner = document.getElementById('login-spinner');
+
+      // Clear any existing retry timers
+      if (_wakeupTimer) { clearTimeout(_wakeupTimer); _wakeupTimer = null; }
+      if (_retryCountdown) { clearInterval(_retryCountdown); _retryCountdown = null; }
+
       btn.disabled = true;
-      btnText.textContent = t('login.loading');
+      btnText.textContent = t('login.loading') || 'Connexion...';
       spinner.classList.remove('hidden');
 
-      try {
-        const res = await fetch('/api/users/login/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          const token = data.token || data.access || data.key;
-          if (token) Auth.setAuthToken(token);
-          if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
-          localStorage.setItem('authUser', JSON.stringify({ username }));
-          // Redirect to the page the guest tried to visit, or dashboard
-          let redirect = 'dashboard.html';
-          try {
-            const stored = sessionStorage.getItem('_authRedirect');
-            if (stored) { sessionStorage.removeItem('_authRedirect'); redirect = stored; }
-          } catch (_) {}
-          window.location.replace(redirect);
-        } else {
-          let msg;
-          if (res.status === 502 || res.status === 503 || res.status === 504) {
-            msg = t('login.serverError') || 'Server is starting up. Please wait a few seconds and try again.';
+      const MAX_ATTEMPTS = 4;
+      const RETRY_DELAYS = [15, 20, 30]; // seconds between attempts
+
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        try {
+          const { res, data } = await doLoginRequest(username, password);
+
+          const isBackendStarting = (
+            res.status === 502 || res.status === 503 || res.status === 504 ||
+            data.error === 'backend_starting'
+          );
+
+          if (res.ok) {
+            // ✅ SUCCESS
+            hideWakeupBanner();
+            const token = data.token || data.access || data.key;
+            if (token) Auth.setAuthToken(token);
+            if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
+            localStorage.setItem('authUser', JSON.stringify({ username }));
+            let redirect = 'dashboard.html';
+            try {
+              const stored = sessionStorage.getItem('_authRedirect');
+              if (stored) { sessionStorage.removeItem('_authRedirect'); redirect = stored; }
+            } catch (_) {}
+            window.location.replace(redirect);
+            return;
+
+          } else if (isBackendStarting && attempt < MAX_ATTEMPTS - 1) {
+            // ⏳ Backend waking up — wait and retry
+            const waitSec = RETRY_DELAYS[attempt] || 20;
+            let countdown = waitSec;
+            showWakeupBanner(countdown);
+            btnText.textContent = `Attente (${countdown}s)...`;
+
+            await new Promise((resolve) => {
+              _retryCountdown = setInterval(() => {
+                countdown--;
+                const el = document.getElementById('countdown-sec');
+                if (el) el.textContent = countdown;
+                btnText.textContent = `Attente (${countdown}s)...`;
+                if (countdown <= 0) {
+                  clearInterval(_retryCountdown);
+                  _retryCountdown = null;
+                  resolve();
+                }
+              }, 1000);
+            });
+
+            hideWakeupBanner();
+            document.getElementById('login-error-banner').classList.add('hidden');
+            btnText.textContent = `Tentative ${attempt + 2}/${MAX_ATTEMPTS}...`;
+            continue; // retry
+
           } else {
-            msg = data.non_field_errors?.[0] || data.detail || data.error || t('login.error');
+            // ❌ Real error (wrong credentials, etc.)
+            let msg;
+            if (isBackendStarting) {
+              msg = '⚠️ Le serveur backend ne répond pas. Veuillez réessayer dans 1-2 minutes.';
+            } else {
+              msg = data.non_field_errors?.[0] || data.detail || data.error || t('login.error') || 'Identifiants incorrects.';
+            }
+            showErrorBanner(msg);
+            break;
           }
-          document.getElementById('login-error-banner').classList.remove('hidden');
-          document.getElementById('login-error-text').textContent = msg;
+        } catch (err) {
+          if (attempt < MAX_ATTEMPTS - 1) {
+            const waitSec = RETRY_DELAYS[attempt] || 15;
+            let countdown = waitSec;
+            showWakeupBanner(countdown);
+            btnText.textContent = `Attente (${countdown}s)...`;
+            await new Promise((resolve) => {
+              _retryCountdown = setInterval(() => {
+                countdown--;
+                const el = document.getElementById('countdown-sec');
+                if (el) el.textContent = countdown;
+                btnText.textContent = `Attente (${countdown}s)...`;
+                if (countdown <= 0) {
+                  clearInterval(_retryCountdown);
+                  _retryCountdown = null;
+                  resolve();
+                }
+              }, 1000);
+            });
+            hideWakeupBanner();
+            document.getElementById('login-error-banner').classList.add('hidden');
+            btnText.textContent = `Tentative ${attempt + 2}/${MAX_ATTEMPTS}...`;
+          } else {
+            showErrorBanner('Serveur indisponible. Veuillez réessayer dans quelques secondes.');
+          }
         }
-      } catch (err) {
-        document.getElementById('login-error-banner').classList.remove('hidden');
-        document.getElementById('login-error-text').textContent = t('login.serverError') || 'Server unavailable. Please try again in a few seconds.';
-      } finally {
-        btn.disabled = false;
-        btnText.textContent = t('login.btn');
-        spinner.classList.add('hidden');
       }
+
+      btn.disabled = false;
+      btnText.textContent = t('login.btn') || 'Se connecter';
+      spinner.classList.add('hidden');
     }
+
+    // --- Warm up the backend on page load (GET request to wake it) ---
+    (async function warmupBackend() {
+      const badge = document.getElementById('server-status-badge');
+      try {
+        // Try a quick ping first with short timeout
+        const quickPing = await fetch('/api/health/', { method: 'GET', signal: AbortSignal.timeout(4000) });
+        if (quickPing.ok) return; // backend is already up!
+      } catch (_) {
+        // Backend is sleeping — show the badge
+        if (badge) badge.classList.remove('hidden');
+      }
+      // Longer warmup attempt
+      try {
+        await fetch('/api/health/', { method: 'GET', signal: AbortSignal.timeout(45000) });
+      } catch (_) { /* silent */ } finally {
+        if (badge) badge.classList.add('hidden');
+      }
+    })();
+
 
     function togglePassword(inputId, btn) {
       const input = document.getElementById(inputId);

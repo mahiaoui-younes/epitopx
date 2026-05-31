@@ -1340,31 +1340,82 @@ IMPORTANT INSTRUCTIONS:
   }
 
   // -- Proxy /api/* and /media/* → remote backend -------------------------
+  // Includes retry logic for Render free-tier cold-starts (502/503/504)
   if (pathname.startsWith('/api/') || pathname.startsWith('/media/')) {
     const target = REMOTE_API + req.url;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAYS = [3000, 6000, 10000]; // ms — exponential backoff
 
     try {
       const bodyBuffer = await collectBody(req);
-      proxyRequest({
-        tag: 'backend-proxy',
-        targetUrl: target,
-        method: req.method,
-        headers: {
-          ...req.headers,
-          host: new URL(REMOTE_API).host,
-          'ngrok-skip-browser-warning': 'true',
-          ...(bodyBuffer.length ? { 'content-length': bodyBuffer.length } : {}),
-        },
-        body: bodyBuffer.length ? bodyBuffer : undefined,
-        timeout: 60000,
-        cacheable: req.method === 'GET' && pathname.startsWith('/media/'),
-        res,
-      });
+
+      // Helper: attempt a single proxy call, resolve with { status, headers, body }
+      function attemptProxy(attempt) {
+        return new Promise((resolve) => {
+          const proto = target.startsWith('https') ? https : http;
+          const proxyReq = proto.request(target, {
+            method: req.method,
+            headers: {
+              ...req.headers,
+              host: new URL(REMOTE_API).host,
+              'ngrok-skip-browser-warning': 'true',
+              ...(bodyBuffer.length ? { 'content-length': bodyBuffer.length } : {}),
+            },
+            timeout: attempt === 0 ? 30000 : 60000, // longer timeout on retries
+          }, (proxyRes) => {
+            const chunks = [];
+            proxyRes.on('data', c => chunks.push(c));
+            proxyRes.on('end', () => resolve({
+              status: proxyRes.statusCode,
+              headers: proxyRes.headers,
+              body: Buffer.concat(chunks),
+            }));
+            proxyRes.on('error', () => resolve({ status: 502, headers: {}, body: Buffer.alloc(0) }));
+          });
+          proxyReq.on('error', () => resolve({ status: 502, headers: {}, body: Buffer.alloc(0) }));
+          proxyReq.on('timeout', () => { proxyReq.destroy(); resolve({ status: 504, headers: {}, body: Buffer.alloc(0) }); });
+          if (bodyBuffer.length > 0) proxyReq.write(bodyBuffer);
+          proxyReq.end();
+        });
+      }
+
+      let lastResult = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        lastResult = await attemptProxy(attempt);
+        const isBackendDown = lastResult.status === 502 || lastResult.status === 503 || lastResult.status === 504;
+
+        if (!isBackendDown) break; // success or client error — stop retrying
+
+        if (attempt < MAX_RETRIES - 1) {
+          log.warn('backend-proxy', `Backend returned ${lastResult.status} on attempt ${attempt + 1}, retrying in ${RETRY_DELAYS[attempt]}ms...`);
+          await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt]));
+        }
+      }
+
+      const isBackendDown = lastResult.status === 502 || lastResult.status === 503 || lastResult.status === 504;
+      const responseHeaders = { ...lastResult.headers };
+      delete responseHeaders['transfer-encoding'];
+      responseHeaders['access-control-allow-origin'] = '*';
+
+      if (!res.headersSent) {
+        if (isBackendDown) {
+          // Return a friendly JSON error the frontend can display
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            error: 'backend_starting',
+            message: 'The server is starting up. Please wait a few seconds and try again.',
+            retry_after: 15,
+          }));
+        } else {
+          res.writeHead(lastResult.status, responseHeaders);
+          res.end(lastResult.body);
+        }
+      }
     } catch (err) {
       if (!res.headersSent) {
-        res.writeHead(413, { 'Content-Type': 'application/json' });
+        res.writeHead(503, { 'Content-Type': 'application/json' });
       }
-      res.end(JSON.stringify({ error: err.message }));
+      res.end(JSON.stringify({ error: 'backend_starting', message: err.message }));
     }
     return;
   }
@@ -1420,32 +1471,41 @@ server.listen(PORT, '0.0.0.0', () => {
   log.info('server', `Cache: max ${cache.maxEntries} entries | Throttle: 2-3 concurrent/host`);
   log.info('server', `Status endpoint: /api/_status`);
 
-  // Startup health-check
-  try {
-    const _remoteHost = new URL(REMOTE_API);
-    const _checkReq = https.request({
-      hostname: _remoteHost.hostname,
-      path: '/api/proteins/',
-      method: 'HEAD',
-      headers: { 'ngrok-skip-browser-warning': 'true' },
-      timeout: 6000,
-    }, (_res) => {
-      if (_res.statusCode >= 500) {
-        log.warn('health', `Remote API returned HTTP ${_res.statusCode} � backend may be down`);
-      } else {
-        log.info('health', `Remote API reachable (HTTP ${_res.statusCode})`);
-      }
-      _res.resume();
-    });
-    _checkReq.on('timeout', () => {
-      _checkReq.destroy();
-      log.warn('health', 'Remote API health-check timed out � update REMOTE_API if using ngrok');
-    });
-    _checkReq.on('error', (_err) => {
-      log.error('health', `Remote API UNREACHABLE: ${_err.message}`);
-    });
-    _checkReq.end();
-  } catch (_) { /* malformed REMOTE_API URL � skip check */ }
+  // Startup health-check (use /api/health/ — no auth required)
+  function pingBackend() {
+    try {
+      const _remoteHost = new URL(REMOTE_API);
+      const proto = REMOTE_API.startsWith('https') ? https : http;
+      const _checkReq = proto.request({
+        hostname: _remoteHost.hostname,
+        path: '/api/health/',
+        method: 'GET',
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+        timeout: 8000,
+      }, (_res) => {
+        if (_res.statusCode >= 500) {
+          log.warn('health', `Remote API returned HTTP ${_res.statusCode} — backend may be down`);
+        } else {
+          log.info('health', `Remote API reachable (HTTP ${_res.statusCode})`);
+        }
+        _res.resume();
+      });
+      _checkReq.on('timeout', () => {
+        _checkReq.destroy();
+        log.warn('health', 'Remote API health-check timed out — backend may be cold-starting');
+      });
+      _checkReq.on('error', (_err) => {
+        log.warn('health', `Remote API ping failed: ${_err.message}`);
+      });
+      _checkReq.end();
+    } catch (_) { /* malformed REMOTE_API URL — skip check */ }
+  }
+
+  pingBackend(); // immediate check on startup
+
+  // Keep-alive ping every 14 minutes to prevent Render free-tier cold-start
+  // (Render spins down after 15 minutes of inactivity)
+  setInterval(pingBackend, 14 * 60 * 1000);
 });
 
 // -- Graceful shutdown ----------------------------------------------------

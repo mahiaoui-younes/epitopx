@@ -208,10 +208,19 @@ _FRONTEND_URL = os.environ.get('FRONTEND_URL', '')
 CORS_ALLOWED_ORIGINS = list(filter(None, [
     'http://localhost:3333',
     'http://127.0.0.1:3333',
+    'https://epitopx-frontend.onrender.com',
     _FRONTEND_URL,
 ]))
+# Remove duplicates while preserving order
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(CORS_ALLOWED_ORIGINS))
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+# Allow all .onrender.com origins (covers both services)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.onrender\.com$',
+    r'^http://localhost(:\d+)?$',
+    r'^http://127\.0\.0\.1(:\d+)?$',
+]
 
 # ── JWT (djangorestframework-simplejwt) ───────────────────────────────────────
 from datetime import timedelta
