@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Create demo and admin users if they do not already exist (idempotent).'
+    help = 'Create demo and admin users if they do not already exist (idempotent). Resets passwords on existing users.'
 
     def handle(self, *args, **options):
         from rest_framework.authtoken.models import Token
@@ -34,7 +34,18 @@ class Command(BaseCommand):
         for data in users_to_create:
             username = data['username']
             if User.objects.filter(username=username).exists():
-                self.stdout.write(f'  User "{username}" already exists — skipping.')
+                # User exists — ensure password and token are up to date
+                user = User.objects.get(username=username)
+                user.set_password(data['password'])
+                user.is_active = True
+                user.is_email_verified = True
+                user.save(update_fields=['password', 'is_active', 'is_email_verified'])
+                # Regenerate token for clean state
+                Token.objects.filter(user=user).delete()
+                Token.objects.create(user=user)
+                # Ensure subscription exists
+                Subscription.objects.get_or_create(user=user, defaults={'plan': 'free', 'status': 'active'})
+                self.stdout.write(f'  User "{username}" already exists — password reset and token regenerated.')
                 continue
 
             user = User.objects.create_user(
