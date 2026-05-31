@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -428,6 +428,7 @@
   </div>
 
   <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
   <script>
     async function handleSignup(e) {
       e.preventDefault();
@@ -480,29 +481,58 @@
             username,
             email,
             password,
-            password_confirm: confirm,
-            first_name: firstname,
-            last_name: lastname
           })
         });
         const data = await res.json();
         if (res.ok) {
-          window.location.href = 'login.html';
+          // Store token using Auth module and redirect directly to dashboard
+          if (data.token && typeof Auth !== 'undefined') {
+            Auth.setAuthToken(data.token);
+          }
+          localStorage.setItem('authUser', JSON.stringify({ username }));
+          window.location.href = 'dashboard.html';
+
         } else {
-          const firstKey = Object.keys(data)[0];
-          const firstVal = data[firstKey];
-          const msg = Array.isArray(firstVal) ? firstVal[0] : (data.detail || t('signup.error'));
+          // Extract the clearest error message from the API response
+          let msg = '';
+          if (data.error) {
+            msg = data.error;
+          } else if (data.details) {
+            // DRF validation errors nested under 'details'
+            const firstKey = Object.keys(data.details)[0];
+            const firstVal = data.details[firstKey];
+            msg = Array.isArray(firstVal) ? firstVal[0] : String(firstVal);
+          } else if (data.non_field_errors) {
+            msg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors;
+          } else {
+            // Try each field error key
+            const errKey = Object.keys(data).find(k => data[k]);
+            if (errKey) {
+              const errVal = data[errKey];
+              msg = Array.isArray(errVal) ? errVal[0] : String(errVal);
+            }
+          }
+          msg = msg || (t ? t('signup.error') : 'Une erreur est survenue.');
+          // Translate common Django validator messages to French
+          msg = msg
+            .replace('This password is too common.', 'Ce mot de passe est trop courant. Choisissez un mot de passe plus unique.')
+            .replace('This password is too short. It must contain at least 8 characters.', 'Le mot de passe est trop court (8 caractères minimum).')
+            .replace('The password is too similar to the username.', 'Le mot de passe est trop similaire au nom d\'utilisateur.')
+            .replace('This password is entirely numeric.', 'Le mot de passe ne peut pas être entièrement numérique.')
+            .replace('Username already taken.', 'Ce nom d\'utilisateur est déjà pris.')
+            .replace('An account with this email already exists.', 'Un compte avec cet e-mail existe déjà.');
           document.getElementById('signup-error-banner').classList.remove('hidden');
           document.getElementById('signup-error-text').textContent = msg;
         }
       } catch (err) {
         document.getElementById('signup-error-banner').classList.remove('hidden');
-        document.getElementById('signup-error-text').textContent = t('signup.error');
+        document.getElementById('signup-error-text').textContent = 'Serveur indisponible. Veuillez réessayer dans quelques secondes.';
       } finally {
         btn.disabled = false;
-        btnText.textContent = t('signup.btn');
+        btnText.textContent = t ? t('signup.btn') : 'Créer mon compte';
         spinner.classList.add('hidden');
       }
+
     }
 
     function togglePasswordField(inputId, btn) {

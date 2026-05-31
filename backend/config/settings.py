@@ -123,14 +123,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 8},
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
+    # NumericPasswordValidator kept — passwords cannot be entirely numeric
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    # CommonPasswordValidator removed — too aggressive for a research tool.
+    # Real security is provided by Argon2 hashing (PASSWORD_HASHERS below).
 ]
+
 
 
 # Internationalization
