@@ -1339,7 +1339,7 @@ IMPORTANT INSTRUCTIONS:
     return;
   }
 
-  // -- Proxy /api/* and /media/* ? remote backend -------------------------
+  // -- Proxy /api/* and /media/* → remote backend -------------------------
   if (pathname.startsWith('/api/') || pathname.startsWith('/media/')) {
     const target = REMOTE_API + req.url;
 
@@ -1356,7 +1356,7 @@ IMPORTANT INSTRUCTIONS:
           ...(bodyBuffer.length ? { 'content-length': bodyBuffer.length } : {}),
         },
         body: bodyBuffer.length ? bodyBuffer : undefined,
-        timeout: 30000,
+        timeout: 60000,
         cacheable: req.method === 'GET' && pathname.startsWith('/media/'),
         res,
       });

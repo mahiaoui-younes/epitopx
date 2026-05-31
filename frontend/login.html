@@ -374,13 +374,18 @@
           } catch (_) {}
           window.location.replace(redirect);
         } else {
-          const msg = data.non_field_errors?.[0] || data.detail || t('login.error');
+          let msg;
+          if (res.status === 502 || res.status === 503 || res.status === 504) {
+            msg = t('login.serverError') || 'Server is starting up. Please wait a few seconds and try again.';
+          } else {
+            msg = data.non_field_errors?.[0] || data.detail || data.error || t('login.error');
+          }
           document.getElementById('login-error-banner').classList.remove('hidden');
           document.getElementById('login-error-text').textContent = msg;
         }
       } catch (err) {
         document.getElementById('login-error-banner').classList.remove('hidden');
-        document.getElementById('login-error-text').textContent = t('login.error');
+        document.getElementById('login-error-text').textContent = t('login.serverError') || 'Server unavailable. Please try again in a few seconds.';
       } finally {
         btn.disabled = false;
         btnText.textContent = t('login.btn');
