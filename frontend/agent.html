@@ -320,14 +320,16 @@
         <!-- Model selector -->
         <div class="model-wrap" title="Choisir le modèle IA" style="position:relative;">
           <svg style="width:14px;height:14px;flex-shrink:0;color:#6366f1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
-          <span id="model-name-display" style="font-size:.78rem;font-weight:600;color:#374151;white-space:nowrap;pointer-events:none;">GPT-4o Mini ⚡</span>
+          <span id="model-name-display" style="font-size:.78rem;font-weight:600;color:#374151;white-space:nowrap;pointer-events:none;">GPT OSS 120B ⚡</span>
           <svg style="width:12px;height:12px;color:#6b7280;pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           <select id="model-select" class="model-select" onchange="document.getElementById('model-name-display').textContent=this.options[this.selectedIndex].text" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;">
-            <optgroup label="GPT Models">
-              <option value="openai/gpt-4o-mini:free" selected>GPT-4o Mini ⚡</option>
-              <option value="openai/gpt-4o:free">GPT-4o</option>
+            <optgroup label="OpenAI OSS (Free)">
+              <option value="openai/gpt-oss-120b:free" selected>GPT OSS 120B ⚡</option>
               <option value="openai/gpt-oss-20b:free">GPT OSS 20B</option>
-              <option value="openai/gpt-oss-120b:free">GPT OSS 120B</option>
+            </optgroup>
+            <optgroup label="OpenAI (Paid)">
+              <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+              <option value="openai/gpt-4o">GPT-4o</option>
             </optgroup>
           </select>
           <span class="free-badge">FREE</span>
@@ -432,7 +434,7 @@
   const STATE = {
     history:    [],   // [{ role, content }] multi-turn context
     files:      [],   // [{ name, content, type }] attached files
-    model:      localStorage.getItem('epitopx-agent-model') || 'meta-llama/llama-3.2-3b-instruct:free',
+    model:      localStorage.getItem('epitopx-agent-model') || 'openai/gpt-oss-120b:free',
     count:      0,
     busy:       false,
     replyTexts: [],   // raw text of each agent reply

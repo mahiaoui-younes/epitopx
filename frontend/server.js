@@ -42,7 +42,7 @@ const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10 MB
 
 // -- LLM (OpenRouter) configuration ----------------------------------------
 const LLM_API_KEY  = process.env.LLM_API_KEY  || '';
-const LLM_MODEL    = process.env.LLM_MODEL    || 'openai/gpt-4o-mini';
+const LLM_MODEL    = process.env.LLM_MODEL    || 'openai/gpt-oss-120b:free';
 const LLM_PROVIDER = process.env.LLM_PROVIDER || 'openrouter';
 
 // -- Initialize shared services -------------------------------------------
@@ -1264,7 +1264,7 @@ IMPORTANT INSTRUCTIONS:
         headers: {
           'Content-Type':   'application/json',
           'Authorization':  `Bearer ${LLM_API_KEY}`,
-          'HTTP-Referer':   'http://localhost:3333',
+          'HTTP-Referer':   process.env.SITE_URL || 'https://epitopx-frontend.onrender.com',
           'X-Title':        'EpitopX AI',
           'Content-Length': llmBody.length,
         },
