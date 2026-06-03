@@ -5,9 +5,15 @@
 (function () {
   'use strict';
 
-  /* ── route guard DISABLED FOR DEV ───────────────────────── */
-  const PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'dashboard.html', 'viewer.html', ''];
+  /* ── route guard ─────────────────────────────────────────── */
+  const PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'pricing.html', 'viewer.html', ''];
   const currentPage  = location.pathname.split('/').pop() || 'index.html';
+
+  if (!PUBLIC_PAGES.includes(currentPage) &&
+      (typeof Auth === 'undefined' || !Auth.isAuthenticated())) {
+    window.location.replace('login.html');
+  }
+
   /* ── helpers ─────────────────────────────────────────────── */
   const esc = Utils.escapeHTML;
 
