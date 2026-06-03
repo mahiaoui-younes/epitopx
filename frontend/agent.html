@@ -328,6 +328,7 @@
               <option value="openai/gpt-oss-20b:free">GPT OSS 20B</option>
             </optgroup>
             <optgroup label="OpenAI (Paid)">
+              <option value="openai/gpt-oss-120b">GPT OSS 120B 💎</option>
               <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
               <option value="openai/gpt-4o">GPT-4o</option>
             </optgroup>
@@ -578,9 +579,22 @@
 
   // ── Init model selector ───────────────────────────────────────────────────
   modelSel.value = STATE.model;
+
+  function updateModelBadge() {
+    const badge = document.querySelector('.free-badge');
+    if (!badge) return;
+    const isFree = modelSel.value.endsWith(':free');
+    badge.textContent = isFree ? 'FREE' : 'PAID';
+    badge.style.background = isFree
+      ? 'linear-gradient(135deg,#10b981,#059669)'
+      : 'linear-gradient(135deg,#6366f1,#3b82f6)';
+  }
+  updateModelBadge();
+
   modelSel.addEventListener('change', () => {
     STATE.model = modelSel.value;
     localStorage.setItem('epitopx-agent-model', STATE.model);
+    updateModelBadge();
     addSystem('Modèle → ' + STATE.model.split('/').pop());
   });
 
