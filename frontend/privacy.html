@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Politique de Confidentialité — EpitopX AI</title>
+  <meta name="description" content="Politique de confidentialité d'EpitopX AI. Découvrez comment nous collectons, utilisons et protégeons vos données personnelles.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    .legal-content { max-width: 52rem; margin: 0 auto; }
+    .legal-content h2 { font-size: 1.35rem; font-weight: 700; color: #0f172a; margin-top: 2.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; }
+    .legal-content h3 { font-size: 1.05rem; font-weight: 600; color: #1e293b; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    .legal-content p, .legal-content li { font-size: 0.925rem; color: #475569; line-height: 1.75; }
+    .legal-content ul { list-style: none; padding-left: 0; }
+    .legal-content ul li { position: relative; padding-left: 1.5rem; margin-bottom: 0.4rem; }
+    .legal-content ul li::before { content: ''; position: absolute; left: 0; top: 0.55rem; width: 6px; height: 6px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #0d9488); }
+    .legal-content a { color: #3b82f6; text-decoration: underline; text-underline-offset: 2px; transition: color 0.2s; }
+    .legal-content a:hover { color: #0d9488; }
+    .legal-toc { background: linear-gradient(135deg, rgba(59,130,246,0.04), rgba(13,148,136,0.04)); border: 1px solid rgba(59,130,246,0.12); border-radius: 1rem; padding: 1.5rem 2rem; margin-bottom: 2rem; }
+    .legal-toc a { text-decoration: none; font-size: 0.875rem; color: #3b82f6; transition: color 0.2s; }
+    .legal-toc a:hover { color: #0d9488; }
+    .legal-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 1rem; border-radius: 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(13,148,136,0.08)); font-size: 0.75rem; font-weight: 600; color: #3b82f6; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1rem; }
+    .legal-badge span.dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; animation: pulse-dot 2s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .info-card { background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(13,148,136,0.05)); border: 1px solid rgba(59,130,246,0.1); border-radius: 0.75rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+    .info-card p { font-size: 0.85rem !important; margin: 0; }
+    .legal-hero { padding: 6rem 1.5rem 3rem; text-align: center; position: relative; overflow: hidden; }
+    .legal-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.06) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(13,148,136,0.05) 0%, transparent 60%); }
+    .legal-hero-icon { width: 4rem; height: 4rem; border-radius: 1.25rem; background: linear-gradient(135deg, #3b82f6, #0d9488); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; box-shadow: 0 8px 32px rgba(59,130,246,0.25); }
+    .legal-hero h1 { font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; }
+    .legal-hero p { font-size: 0.95rem; color: #64748b; max-width: 32rem; margin: 0 auto; line-height: 1.6; }
+    .legal-meta { display: flex; justify-content: center; gap: 2rem; margin-top: 1.25rem; font-size: 0.8rem; color: #94a3b8; }
+    .legal-meta span { display: flex; align-items: center; gap: 0.35rem; }
+  </style>
+</head>
+<body class="bg-[#f7f8fc] text-gray-800 font-sans" style="position:relative;">
+
+  <!-- ══════════ FLOATING NAV ══════════ -->
+  <nav id="float-nav" class="float-nav">
+    <div class="float-nav-inner">
+      <a href="index.html" class="nav-logo group">
+        <span class="nav-logo-icon group-hover:scale-110 transition-transform inline-block">🧬</span>
+        <span class="nav-logo-text gradient-text">EpitopX AI</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Accueil
+        </a>
+        <a href="dashboard.html" class="nav-link">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          Dashboard
+        </a>
+      </div>
+      <div class="hidden md:flex items-center gap-2" id="nav-auth-wrap">
+        <a href="login.html" class="btn-secondary" style="padding:0.45rem 1rem;font-size:0.8rem;">Connexion</a>
+        <a href="signup.html" class="btn-primary" style="padding:0.45rem 1rem;font-size:0.8rem;">S'inscrire</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════ HERO ══════════ -->
+  <div class="legal-hero">
+    <div class="legal-hero-icon">
+      <svg style="width:1.75rem;height:1.75rem;color:#fff" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    </div>
+    <div class="legal-badge"><span class="dot"></span>Document légal</div>
+    <h1>Politique de Confidentialité</h1>
+    <p>Nous nous engageons à protéger vos données personnelles et à être transparents sur la manière dont nous les utilisons.</p>
+    <div class="legal-meta">
+      <span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Mise à jour : 3 juin 2026
+      </span>
+      <span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        ~8 min de lecture
+      </span>
+    </div>
+  </div>
+
+  <!-- ══════════ CONTENT ══════════ -->
+  <main class="px-4 sm:px-6 lg:px-8 pb-20">
+    <div class="legal-content">
+
+      <!-- Table of contents -->
+      <div class="legal-toc">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Sommaire</p>
+        <ol class="grid sm:grid-cols-2 gap-x-6 gap-y-1.5" style="list-style:decimal inside;">
+          <li><a href="#s1">Responsable du traitement</a></li>
+          <li><a href="#s2">Données collectées</a></li>
+          <li><a href="#s3">Finalités du traitement</a></li>
+          <li><a href="#s4">Base légale</a></li>
+          <li><a href="#s5">Partage des données</a></li>
+          <li><a href="#s6">Services tiers</a></li>
+          <li><a href="#s7">Conservation des données</a></li>
+          <li><a href="#s8">Sécurité</a></li>
+          <li><a href="#s9">Vos droits (RGPD)</a></li>
+          <li><a href="#s10">Cookies</a></li>
+          <li><a href="#s11">Mineurs</a></li>
+          <li><a href="#s12">Modifications</a></li>
+          <li><a href="#s13">Contact</a></li>
+        </ol>
+      </div>
+
+      <!-- 1 -->
+      <h2 id="s1">1. Responsable du traitement</h2>
+      <p>
+        La plateforme <strong>EpitopX AI</strong> est éditée dans le cadre d'un projet de recherche universitaire en bioinformatique.
+        Le responsable du traitement des données personnelles est :
+      </p>
+      <div class="info-card">
+        <p><strong>EpitopX AI</strong><br>
+        Projet universitaire — Analyse structurale de protéines<br>
+        Contact : <a href="mailto:contact@epitopx.ai">contact@epitopx.ai</a></p>
+      </div>
+
+      <!-- 2 -->
+      <h2 id="s2">2. Données collectées</h2>
+      <h3>2.1 Données d'inscription</h3>
+      <p>Lors de la création de votre compte, nous collectons :</p>
+      <ul>
+        <li>Nom d'utilisateur</li>
+        <li>Adresse e-mail</li>
+        <li>Mot de passe (stocké sous forme de hash Argon2, jamais en clair)</li>
+        <li>Institution / organisme (facultatif)</li>
+      </ul>
+
+      <h3>2.2 Données d'utilisation</h3>
+      <p>Lors de votre utilisation de la plateforme, nous pouvons collecter :</p>
+      <ul>
+        <li>Séquences protéiques et ADN soumises pour analyse</li>
+        <li>Résultats de prédiction d'épitopes</li>
+        <li>Historique des conversations avec l'Agent IA</li>
+        <li>Logs techniques (adresse IP, navigateur, horodatages)</li>
+        <li>Préférences d'interface (thème, langue)</li>
+      </ul>
+
+      <h3>2.3 Données techniques</h3>
+      <p>Des données techniques sont automatiquement collectées :</p>
+      <ul>
+        <li>Adresse IP (anonymisée après 30 jours)</li>
+        <li>Type et version du navigateur</li>
+        <li>Pages consultées et durée de visite</li>
+        <li>Données de performance (temps de chargement)</li>
+      </ul>
+
+      <!-- 3 -->
+      <h2 id="s3">3. Finalités du traitement</h2>
+      <p>Vos données personnelles sont traitées pour les finalités suivantes :</p>
+      <ul>
+        <li><strong>Fournir le service</strong> — créer et gérer votre compte, traiter vos analyses de protéines</li>
+        <li><strong>Améliorer la plateforme</strong> — analyser l'utilisation pour optimiser les fonctionnalités et les performances</li>
+        <li><strong>Sécurité</strong> — détecter et prévenir les abus, les activités frauduleuses et les violations de sécurité</li>
+        <li><strong>Communication</strong> — vous envoyer des notifications relatives à votre compte (réinitialisation de mot de passe, mises à jour importantes)</li>
+        <li><strong>Recherche</strong> — contribuer à la recherche scientifique en bioinformatique (données anonymisées uniquement)</li>
+      </ul>
+
+      <!-- 4 -->
+      <h2 id="s4">4. Base légale du traitement</h2>
+      <p>Conformément au Règlement Général sur la Protection des Données (RGPD), nos bases légales sont :</p>
+      <ul>
+        <li><strong>Exécution du contrat</strong> (Art. 6.1.b) — nécessaire pour fournir les services demandés</li>
+        <li><strong>Intérêt légitime</strong> (Art. 6.1.f) — amélioration de la plateforme et sécurité</li>
+        <li><strong>Consentement</strong> (Art. 6.1.a) — pour les cookies non essentiels et les communications marketing</li>
+        <li><strong>Obligation légale</strong> (Art. 6.1.c) — respect des lois applicables</li>
+      </ul>
+
+      <!-- 5 -->
+      <h2 id="s5">5. Partage des données</h2>
+      <p>Nous ne vendons <strong>jamais</strong> vos données personnelles. Vos données peuvent être partagées uniquement dans les cas suivants :</p>
+      <ul>
+        <li><strong>Sous-traitants techniques</strong> — hébergement (Render.com), base de données (PostgreSQL managé), envoi d'e-mails</li>
+        <li><strong>Fournisseurs d'IA</strong> — les messages envoyés à l'Agent IA sont transmis à OpenRouter pour traitement (sans données d'identification personnelle)</li>
+        <li><strong>Obligations légales</strong> — si requis par la loi ou une autorité judiciaire</li>
+        <li><strong>Consentement</strong> — avec votre accord explicite</li>
+      </ul>
+
+      <!-- 6 -->
+      <h2 id="s6">6. Services tiers</h2>
+      <p>EpitopX AI intègre les services tiers suivants :</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm mt-3 mb-3" style="border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid #e2e8f0;">
+              <th class="text-left py-2 pr-4 font-semibold text-gray-700">Service</th>
+              <th class="text-left py-2 pr-4 font-semibold text-gray-700">Finalité</th>
+              <th class="text-left py-2 font-semibold text-gray-700">Politique</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-500" style="font-size:0.85rem;">
+            <tr style="border-bottom:1px solid #f1f5f9;"><td class="py-2 pr-4 font-medium text-gray-700">Render.com</td><td class="py-2 pr-4">Hébergement</td><td class="py-2"><a href="https://render.com/privacy" target="_blank" rel="noopener">render.com/privacy</a></td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td class="py-2 pr-4 font-medium text-gray-700">OpenRouter</td><td class="py-2 pr-4">API LLM (Agent IA)</td><td class="py-2"><a href="https://openrouter.ai/privacy" target="_blank" rel="noopener">openrouter.ai/privacy</a></td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td class="py-2 pr-4 font-medium text-gray-700">UniProt</td><td class="py-2 pr-4">Recherche de protéines</td><td class="py-2"><a href="https://www.uniprot.org/help/privacy" target="_blank" rel="noopener">uniprot.org/privacy</a></td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td class="py-2 pr-4 font-medium text-gray-700">NCBI</td><td class="py-2 pr-4">Base de données génomiques</td><td class="py-2"><a href="https://www.ncbi.nlm.nih.gov/home/about/policies/" target="_blank" rel="noopener">ncbi.nlm.nih.gov/policies</a></td></tr>
+            <tr><td class="py-2 pr-4 font-medium text-gray-700">Google Fonts</td><td class="py-2 pr-4">Typographie (Inter)</td><td class="py-2"><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 7 -->
+      <h2 id="s7">7. Conservation des données</h2>
+      <ul>
+        <li><strong>Données de compte</strong> — conservées tant que votre compte est actif, puis supprimées dans les 30 jours suivant la suppression du compte</li>
+        <li><strong>Données d'analyse</strong> — séquences et résultats conservés pendant la durée de votre abonnement</li>
+        <li><strong>Historique de l'Agent IA</strong> — conservé pendant 12 mois maximum</li>
+        <li><strong>Logs techniques</strong> — supprimés après 90 jours</li>
+        <li><strong>Données anonymisées</strong> — peuvent être conservées indéfiniment à des fins de recherche</li>
+      </ul>
+
+      <!-- 8 -->
+      <h2 id="s8">8. Sécurité des données</h2>
+      <p>Nous mettons en œuvre des mesures de sécurité conformes aux standards de l'industrie :</p>
+      <ul>
+        <li><strong>Chiffrement</strong> — HTTPS/TLS en transit, chiffrement au repos pour les données sensibles</li>
+        <li><strong>Hachage des mots de passe</strong> — algorithme Argon2 (standard recommandé par l'OWASP)</li>
+        <li><strong>Authentification</strong> — JSON Web Tokens (JWT) avec rotation automatique</li>
+        <li><strong>Protection CSRF</strong> — jetons anti-falsification sur toutes les requêtes</li>
+        <li><strong>Limitation de débit</strong> — protection contre les attaques par force brute</li>
+        <li><strong>Headers de sécurité</strong> — HSTS, X-Content-Type-Options, X-Frame-Options</li>
+        <li><strong>Audit</strong> — journalisation des accès et actions sensibles</li>
+      </ul>
+
+      <!-- 9 -->
+      <h2 id="s9">9. Vos droits (RGPD)</h2>
+      <p>Conformément au RGPD, vous disposez des droits suivants :</p>
+      <ul>
+        <li><strong>Droit d'accès</strong> (Art. 15) — obtenir une copie de vos données personnelles</li>
+        <li><strong>Droit de rectification</strong> (Art. 16) — corriger vos données inexactes</li>
+        <li><strong>Droit à l'effacement</strong> (Art. 17) — demander la suppression de vos données</li>
+        <li><strong>Droit à la limitation</strong> (Art. 18) — restreindre le traitement de vos données</li>
+        <li><strong>Droit à la portabilité</strong> (Art. 20) — recevoir vos données dans un format structuré</li>
+        <li><strong>Droit d'opposition</strong> (Art. 21) — vous opposer au traitement de vos données</li>
+        <li><strong>Droit de retrait du consentement</strong> (Art. 7.3) — retirer votre consentement à tout moment</li>
+      </ul>
+      <div class="info-card">
+        <p>📧 Pour exercer vos droits, contactez-nous à <a href="mailto:contact@epitopx.ai">contact@epitopx.ai</a>. Nous répondrons dans un délai de 30 jours. Vous pouvez également déposer une plainte auprès de la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
+      </div>
+
+      <!-- 10 -->
+      <h2 id="s10">10. Cookies</h2>
+      <p>
+        EpitopX AI utilise des cookies pour assurer le bon fonctionnement de la plateforme.
+        Pour en savoir plus sur les cookies que nous utilisons et comment les gérer, consultez notre
+        <a href="cookies.html">Politique de Cookies</a>.
+      </p>
+
+      <!-- 11 -->
+      <h2 id="s11">11. Mineurs</h2>
+      <p>
+        EpitopX AI n'est pas destiné aux personnes de moins de 16 ans.
+        Nous ne collectons pas sciemment de données personnelles de mineurs.
+        Si vous êtes parent ou tuteur et estimez que votre enfant nous a fourni des données personnelles, contactez-nous immédiatement.
+      </p>
+
+      <!-- 12 -->
+      <h2 id="s12">12. Modifications</h2>
+      <p>
+        Nous pouvons mettre à jour cette politique de confidentialité à tout moment.
+        En cas de modification substantielle, nous vous en informerons par e-mail ou par une notification sur la plateforme.
+        La date de dernière mise à jour est indiquée en haut de cette page.
+      </p>
+
+      <!-- 13 -->
+      <h2 id="s13">13. Contact</h2>
+      <p>Pour toute question concernant cette politique de confidentialité :</p>
+      <div class="info-card">
+        <p>
+          📧 E-mail : <a href="mailto:contact@epitopx.ai">contact@epitopx.ai</a><br>
+          🌐 Site : <a href="https://epitopx-frontend.onrender.com">epitopx-frontend.onrender.com</a><br>
+          🔒 Délégué à la protection des données : <a href="mailto:dpo@epitopx.ai">dpo@epitopx.ai</a>
+        </p>
+      </div>
+
+      <!-- Back link -->
+      <div class="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-gray-200">
+        <a href="index.html" class="btn-secondary flex items-center gap-2" style="padding:0.6rem 1.5rem;font-size:0.875rem;">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Retour à l'accueil
+        </a>
+        <a href="cookies.html" class="btn-primary flex items-center gap-2" style="padding:0.6rem 1.5rem;font-size:0.875rem;">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          Politique de Cookies
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="site-footer">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="footer-grid">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">🧬</span>
+            <span class="font-bold text-lg" style="background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">EpitopX AI</span>
+          </div>
+          <p class="text-sm text-gray-400 leading-relaxed max-w-xs">
+            Plateforme d'analyse structurale de protéines — bioinformatique de pointe.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="viewer.html">Viewer 3D</a></li>
+            <li><a href="compare.html">Comparaison</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-heading">Légal</h4>
+          <ul class="footer-links">
+            <li><a href="privacy.html">Politique de Confidentialité</a></li>
+            <li><a href="cookies.html">Politique de Cookies</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="text-xs text-gray-500">© 2026 EpitopX AI — Tous droits réservés</p>
+        <p class="text-xs text-gray-600">Powered by Django · Tailwind CSS · Inter</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+</body>
+</html>

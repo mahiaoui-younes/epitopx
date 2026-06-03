@@ -349,9 +349,9 @@
             <input id="accept-terms" type="checkbox" class="w-4 h-4 mt-0.5 rounded border-gray-300 cursor-pointer accent-blue-600" required>
             <label for="accept-terms" class="text-sm text-gray-600 cursor-pointer select-none leading-snug">
               <span data-i18n="signup.terms.text">J'accepte les</span>
-              <a href="#" class="text-blue-600 hover:underline font-medium" data-i18n="signup.terms.link">Conditions d'utilisation</a>
+              <a href="privacy.html" class="text-blue-600 hover:underline font-medium" data-i18n="signup.terms.link">Conditions d'utilisation</a>
               <span data-i18n="signup.terms.and">et la</span>
-              <a href="#" class="text-blue-600 hover:underline font-medium" data-i18n="signup.privacy.link">Politique de confidentialité</a>
+              <a href="privacy.html" class="text-blue-600 hover:underline font-medium" data-i18n="signup.privacy.link">Politique de confidentialité</a>
             </label>
           </div>
           <p id="terms-error" class="text-red-500 text-xs -mt-3 mb-4 hidden" data-i18n="signup.terms.error">Vous devez accepter les conditions.</p>
@@ -585,5 +585,6 @@
       alert(`Inscription via ${provider} — à connecter à l'API.`);
     }
   </script>
+  <script src="js/cookie-consent.js"></script>
 </body>
 </html>

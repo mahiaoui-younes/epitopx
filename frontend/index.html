@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -586,6 +586,13 @@
             <li><a href="compare.html" data-i18n="footer.feat.rmsd">Alignement RMSD</a></li>
           </ul>
         </div>
+        <div>
+          <h4 class="footer-heading">Légal</h4>
+          <ul class="footer-links">
+            <li><a href="privacy.html">Politique de Confidentialité</a></li>
+            <li><a href="cookies.html">Politique de Cookies</a></li>
+          </ul>
+        </div>
       </div>
       <div class="footer-bottom">
         <p class="text-xs text-gray-500" data-i18n="footer.copyright">© 2026 EpitopX AI — Mode local</p>
@@ -628,7 +635,7 @@
   <script>
     (function () {
       // Pages that don't require authentication
-      var PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', ''];
+      var PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'privacy.html', 'cookies.html', ''];
 
       function isPublicHref(href) {
         if (!href || href.startsWith('#')) return true;
@@ -660,5 +667,6 @@
       }, true);
     })();
   </script>
+  <script src="js/cookie-consent.js"></script>
 </body>
 </html>
