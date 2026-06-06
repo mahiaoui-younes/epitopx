@@ -426,7 +426,14 @@
             let redirect = 'dashboard.html';
             try {
               const stored = sessionStorage.getItem('_authRedirect');
-              if (stored) { sessionStorage.removeItem('_authRedirect'); redirect = stored; }
+              if (stored) {
+                sessionStorage.removeItem('_authRedirect');
+                redirect = stored;
+              } else {
+                // First-time login: send to welcome page for guided onboarding
+                const isFirstTime = !localStorage.getItem('epitopx_onboarded');
+                redirect = isFirstTime ? 'welcome.html' : 'dashboard.html';
+              }
             } catch (_) {}
             window.location.replace(redirect);
             return;

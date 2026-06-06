@@ -6,12 +6,123 @@
   'use strict';
 
   /* ── route guard ─────────────────────────────────────────── */
-  const PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'pricing.html', 'viewer.html', 'privacy.html', 'cookies.html', ''];
+  const PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'pricing.html', 'viewer.html', 'privacy.html', 'cookies.html', 'welcome.html', ''];
   const currentPage  = location.pathname.split('/').pop() || 'index.html';
 
   if (!PUBLIC_PAGES.includes(currentPage) &&
       (typeof Auth === 'undefined' || !Auth.isAuthenticated())) {
     window.location.replace('login.html');
+  }
+
+  /* ── AI Agent pinned button + grouped nav ────────────────── */
+  function enhanceSidebar() {
+    const sbNav = document.querySelector('#sidebar .sb-nav');
+    if (!sbNav) return;
+
+    // 1. Inject pinned AI Agent button before the nav
+    if (!document.getElementById('sb-agent-pin')) {
+      const pin = document.createElement('div');
+      pin.id = 'sb-agent-pin';
+      pin.innerHTML = `
+        <a href="agent.html" id="sb-agent-link"
+          style="display:flex;align-items:center;gap:.625rem;
+                 margin:.625rem .75rem .5rem;
+                 padding:.65rem .875rem;
+                 border-radius:.875rem;
+                 background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(59,130,246,.12));
+                 border:1px solid rgba(99,102,241,.35);
+                 text-decoration:none;
+                 position:relative;overflow:hidden;
+                 transition:all .2s ease;
+                 box-shadow:0 0 0 0 rgba(99,102,241,.3);
+                 animation:sb-agent-pulse 3s ease-in-out infinite;"
+          onmouseover="this.style.background='linear-gradient(135deg,rgba(99,102,241,.2),rgba(59,130,246,.2))';this.style.borderColor='rgba(99,102,241,.6)';"
+          onmouseout="this.style.background='linear-gradient(135deg,rgba(99,102,241,.12),rgba(59,130,246,.12))';this.style.borderColor='rgba(99,102,241,.35)';"
+        >
+          <div style="width:30px;height:30px;border-radius:.5rem;flex-shrink:0;
+                      background:linear-gradient(135deg,#6366f1,#3b82f6);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:.95rem;box-shadow:0 3px 10px rgba(99,102,241,.4);">🤖</div>
+          <div class="sb-item-label" style="flex:1;min-width:0;">
+            <div style="font-size:.8125rem;font-weight:700;color:#4f46e5;line-height:1.2;">AI Assistant</div>
+            <div style="font-size:.67rem;color:#94a3b8;margin-top:.1rem;">Ask anything in natural language</div>
+          </div>
+          <span class="sb-item-label" style="font-size:.58rem;font-weight:700;letter-spacing:.05em;
+            background:linear-gradient(135deg,#6366f1,#3b82f6);color:#fff;
+            padding:.15rem .45rem;border-radius:.3rem;flex-shrink:0;">AI</span>
+        </a>
+      `;
+      sbNav.parentNode.insertBefore(pin, sbNav);
+    }
+
+    // 2. Group the existing nav items with labels
+    const groups = [
+      {
+        label: 'MAIN',
+        pages: ['index.html', 'dashboard.html'],
+      },
+      {
+        label: 'PROTEIN TOOLS',
+        pages: ['protein-search.html', 'ncbi-search.html', 'my-proteins.html'],
+      },
+      {
+        label: 'EPITOPE TOOLS',
+        pages: ['epitope-search.html', 'epitope-details.html'],
+      },
+      {
+        label: 'ANALYSIS',
+        pages: ['viewer.html', 'compare.html', 'dna-alignment.html', 'msa-analysis.html'],
+      },
+    ];
+
+    // Remove the generic single group label if present
+    const genericLabel = sbNav.querySelector('.sb-group-label');
+    if (genericLabel) genericLabel.remove();
+
+    // Collect all sb-items
+    const items = Array.from(sbNav.querySelectorAll('a.sb-item'));
+    if (!items.length) return;
+
+    // Clear nav, re-inject grouped
+    sbNav.innerHTML = '';
+
+    groups.forEach(group => {
+      const groupItems = items.filter(el => {
+        const href = (el.getAttribute('href') || '').split('/').pop();
+        return group.pages.includes(href);
+      });
+      if (!groupItems.length) return;
+
+      const lbl = document.createElement('span');
+      lbl.className = 'sb-group-label';
+      lbl.style.cssText = 'font-size:.6rem;font-weight:700;letter-spacing:.12em;color:#94a3b8;text-transform:uppercase;padding:.75rem .875rem .25rem;display:block;';
+      lbl.textContent = group.label;
+      sbNav.appendChild(lbl);
+
+      groupItems.forEach(el => sbNav.appendChild(el));
+    });
+
+    // Remaining items (settings, agent — exclude agent since it's pinned)
+    const groupedPages = groups.flatMap(g => g.pages);
+    const remaining = items.filter(el => {
+      const href = (el.getAttribute('href') || '').split('/').pop();
+      return !groupedPages.includes(href) && href !== 'agent.html';
+    });
+    if (remaining.length) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'height:1px;background:#f1f5f9;margin:.5rem .75rem;';
+      sbNav.appendChild(sep);
+      remaining.forEach(el => sbNav.appendChild(el));
+    }
+
+    // Highlight active agent link
+    if (currentPage === 'agent.html') {
+      const agentLink = document.getElementById('sb-agent-link');
+      if (agentLink) {
+        agentLink.style.background = 'linear-gradient(135deg,rgba(99,102,241,.22),rgba(59,130,246,.22))';
+        agentLink.style.borderColor = 'rgba(99,102,241,.6)';
+      }
+    }
   }
 
   /* ── helpers ─────────────────────────────────────────────── */
@@ -314,8 +425,23 @@
       _toggleIcons(true);
     }
 
+    enhanceSidebar();
     renderSidebarAuth();
     renderFloatNavAuth();
     renderMobileMenuAuth();
   });
+
+  /* ── Keyframe for agent pin pulse ────────────────────────── */
+  (function injectAgentStyle() {
+    if (document.getElementById('sb-agent-style')) return;
+    const s = document.createElement('style');
+    s.id = 'sb-agent-style';
+    s.textContent = `
+      @keyframes sb-agent-pulse {
+        0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+        50%      { box-shadow: 0 0 12px 3px rgba(99,102,241,0.18); }
+      }
+    `;
+    document.head.appendChild(s);
+  })();
 })();

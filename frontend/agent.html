@@ -356,32 +356,40 @@
           <div class="avatar av-agent">🤖</div>
           <div class="msg-content">
             <div class="msg-bubble">
-              Bonjour ! Je suis <strong>EpitopX AI Agent</strong> — votre assistant bioinformatique.<br><br>
-              Je peux analyser des <strong>protéines</strong>, prédire des <strong>épitopes</strong>, interpréter des <strong>séquences FASTA</strong>, et vous guider vers les outils EpitopX.<br><br>
-              💡 Posez une question, entrez un nom de protéine, ou <strong>glissez un fichier FASTA / TXT</strong> directement ici.
-            </div>
-            <div class="action-chips">
-              <a class="action-chip" href="protein-search.html">🔍 Recherche UniProt</a>
-              <a class="action-chip" href="epitope-search.html">🎯 Épitopes</a>
-              <a class="action-chip" href="msa-analysis.html">🧬 Analyse MSA</a>
-              <a class="action-chip" href="ncbi-search.html">🔎 NCBI</a>
+              👋 <strong>Salut ! Je suis EpitopX.</strong><br><br>
+              Je suis ton assistant de recherche bioinformatique spécialisé dans les protéines, l'analyse d'épitopes, et la modélisation structurelle. Que puis-je faire pour toi aujourd'hui ?
             </div>
           </div>
         </div>
       </div>
 
+      <!-- ── QUICK ACTIONS ── -->
+      <div id="quick-prompts" style="padding:.5rem 1.125rem .25rem;flex-shrink:0;">
+        <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#94a3b8;text-transform:uppercase;margin-bottom:.4rem;">Quick Actions</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.4rem;">
+          <button class="qp-btn" onclick="sendQuick('Recherche la prot\u00e9ine spike du SARS-CoV-2 sur UniProt et r\u00e9sume ses domaines fonctionnels')">
+            🔍 Search SARS-CoV-2 Spike
+          </button>
+          <button class="qp-btn" onclick="sendQuick('Pr\u00e9dis les \u00e9pitopes B-cell de la prot\u00e9ine p53 humaine')">
+            🎯 Predict B-cell Epitopes
+          </button>
+          <button class="qp-btn" onclick="sendQuick('Analyse une prot\u00e9ine li\u00e9e au paludisme et r\u00e9sume sa structure 3D')">
+            🧬 Analyze Malaria Protein
+          </button>
+          <button class="qp-btn" onclick="sendQuick('Compare deux prot\u00e9ines et montre leurs similarit\u00e9s d\u2019\u00e9pitopes et leur RMSD')">
+            ⚖️ Compare Two Proteins
+          </button>
+          <button class="qp-btn" onclick="sendQuick('Explique comment fonctionne la pr\u00e9sentation des antig\u00e8nes par le CMH de classe I')">
+            ❓ Explain MHC Class I
+          </button>
+          <button class="qp-btn" onclick="sendQuick('Montre toutes mes prot\u00e9ines enregistr\u00e9es dans EpitopX')">
+            📋 My Proteins
+          </button>
+        </div>
+      </div>
+
       <!-- ── FILE STRIP ── -->
       <div id="file-strip" class="file-strip hidden"></div>
-
-      <!-- ── QUICK PROMPTS ── -->
-      <div class="quick-prompts" id="quick-prompts">
-        <button class="qp-btn" onclick="sendQuick('Montre mes protéines')">📋 Mes protéines</button>
-        <button class="qp-btn" onclick="sendQuick('Crée une protéine nommée')">✏️ Créer protéine</button>
-        <button class="qp-btn" onclick="sendQuick('Traduis la séquence ADN ')">🔗 Traduire ADN</button>
-        <button class="qp-btn" onclick="sendQuick('Prédit les épitopes de ')">🎯 Prédire épitopes</button>
-        <button class="qp-btn" onclick="sendQuick('Cherche la protéine p53 sur UniProt')">🔍 UniProt</button>
-        <button class="qp-btn" onclick="sendQuick('Qu\'est-ce que MHC classe I ?')">❓ MHC / HLA</button>
-      </div>
 
       <!-- ── UPGRADE BANNER (shown when quota exhausted) ── -->
       <div id="quota-banner" style="display:none;padding:.7rem 1.25rem;background:linear-gradient(135deg,#fef3c7,#fde68a);border-top:1px solid #fcd34d;text-align:center;flex-shrink:0;">
@@ -397,7 +405,7 @@
           </button>
           <input type="file" id="file-input" accept=".fasta,.fa,.fas,.fna,.ffn,.txt,.seq" multiple hidden>
           <textarea id="prompt-input" class="composer-ta" rows="1"
-            placeholder="Posez une question sur une protéine, séquence, épitope… ou glissez un fichier FASTA/TXT"
+            placeholder="Décrivez votre tâche… ex: Analyze the spike protein of SARS-CoV-2"
             onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button id="send-btn" class="c-btn c-send" onclick="sendPrompt()" title="Envoyer (Enter)">
             <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
@@ -428,6 +436,7 @@
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/sidebar.js"></script>
+  <script src="js/onboarding.js"></script>
   <script>
   'use strict';
 

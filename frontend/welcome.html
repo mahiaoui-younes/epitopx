@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpitopX AI — AI-Powered Bioinformatics Platform</title>
+  <meta name="description" content="EpitopX AI: Search proteins, predict B-cell & T-cell epitopes, and run full bioinformatics workflows using natural language with our AI Agent.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui'], mono: ['JetBrains Mono', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    /* ── Welcome page specific ─────────────────────────────────── */
+    body { background: #050d1a; overflow-x: hidden; }
+
+    /* Starfield canvas background */
+    #welcome-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+
+    /* Animated gradient orbs */
+    .w-orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(100px); pointer-events: none; z-index: 0;
+    }
+    .w-orb-1 {
+      width: 600px; height: 600px; top: -150px; left: -100px;
+      background: radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%);
+      animation: orb-drift 14s ease-in-out infinite;
+    }
+    .w-orb-2 {
+      width: 500px; height: 500px; bottom: -100px; right: -50px;
+      background: radial-gradient(circle, rgba(13,148,136,0.15), transparent 70%);
+      animation: orb-drift 18s ease-in-out infinite reverse;
+    }
+    .w-orb-3 {
+      width: 350px; height: 350px; top: 40%; left: 55%;
+      background: radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%);
+      animation: orb-drift 22s ease-in-out infinite 6s;
+    }
+    @keyframes orb-drift {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(40px,-30px) scale(1.08); }
+      66%      { transform: translate(-30px,40px) scale(0.93); }
+    }
+
+    /* ── Nav ── */
+    .w-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(5,13,26,0.7); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .w-logo { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; }
+    .w-logo-orb {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg,#3b82f6,#0d9488);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+      box-shadow: 0 0 20px rgba(59,130,246,0.4);
+    }
+    .w-logo-name {
+      font-size: 1rem; font-weight: 800; letter-spacing: -0.02em;
+      background: linear-gradient(135deg,#60a5fa,#34d399);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .w-nav-links { display: flex; align-items: center; gap: 0.5rem; }
+    .w-nav-link {
+      font-size: 0.8125rem; font-weight: 500; color: rgba(255,255,255,0.55);
+      text-decoration: none; padding: 0.375rem 0.875rem; border-radius: 2rem;
+      transition: all 0.2s;
+    }
+    .w-nav-link:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+    /* ── Hero ── */
+    .w-hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 5rem 1.5rem 4rem;
+    }
+
+    /* AI badge */
+    .w-ai-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.375rem 1rem; border-radius: 9999px; margin-bottom: 2rem;
+      background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35);
+      font-size: 0.75rem; font-weight: 600; color: #a5b4fc;
+      animation: fade-up 0.6s ease both;
+    }
+    .w-ai-badge-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #818cf8;
+      animation: badge-ping 2s ease-in-out infinite;
+    }
+    @keyframes badge-ping {
+      0%,100%{ opacity:1; transform:scale(1); }
+      50%{ opacity:0.5; transform:scale(1.4); }
+    }
+
+    /* Main title */
+    .w-title {
+      font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 900;
+      line-height: 1.05; letter-spacing: -0.03em;
+      color: #fff; margin-bottom: 1.5rem;
+      animation: fade-up 0.6s ease 0.1s both;
+    }
+    .w-title-gradient {
+      background: linear-gradient(135deg, #60a5fa 0%, #818cf8 40%, #34d399 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      background-size: 200% 200%; animation: gradient-pan 5s ease infinite;
+    }
+    @keyframes gradient-pan {
+      0%,100%{ background-position:0% 50%; }
+      50%{ background-position:100% 50%; }
+    }
+
+    /* Subtitle */
+    .w-subtitle {
+      font-size: 1.125rem; color: rgba(255,255,255,0.5); line-height: 1.7;
+      max-width: 560px; margin: 0 auto 3rem;
+      animation: fade-up 0.6s ease 0.2s both;
+    }
+
+    /* ── CTA Buttons ── */
+    .w-ctas {
+      display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+      margin-bottom: 4rem; animation: fade-up 0.6s ease 0.3s both;
+    }
+
+    /* Primary AI CTA */
+    .w-cta-ai {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      padding: 1rem 2rem; border-radius: 1rem; font-weight: 700; font-size: 1rem;
+      background: linear-gradient(135deg, #6366f1, #3b82f6);
+      color: #fff; text-decoration: none; border: none; cursor: pointer;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 0 0 rgba(99,102,241,0.5);
+      animation: cta-glow 2.5s ease-in-out infinite;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    @keyframes cta-glow {
+      0%,100%{ box-shadow: 0 0 20px rgba(99,102,241,0.4), 0 4px 20px rgba(99,102,241,0.3); }
+      50%{ box-shadow: 0 0 40px rgba(99,102,241,0.6), 0 4px 30px rgba(99,102,241,0.5); }
+    }
+    .w-cta-ai:hover { transform: translateY(-3px) scale(1.02); }
+    .w-cta-ai-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .w-cta-ai-text { display: flex; flex-direction: column; align-items: flex-start; }
+    .w-cta-ai-label { font-size: 0.75rem; font-weight: 500; opacity: 0.8; }
+    .w-cta-ai-name { font-size: 1rem; font-weight: 800; }
+
+    /* Secondary CTAs */
+    .w-cta-sec {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 1rem 1.5rem; border-radius: 1rem; font-weight: 600; font-size: 0.9rem;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8); text-decoration: none; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .w-cta-sec:hover {
+      background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25);
+      color: #fff; transform: translateY(-2px);
+    }
+
+    /* ── Feature Chips ── */
+    .w-features {
+      display: flex; flex-wrap: wrap; gap: 0.625rem; justify-content: center;
+      max-width: 700px; margin: 0 auto 5rem;
+      animation: fade-up 0.6s ease 0.4s both;
+    }
+    .w-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.875rem; border-radius: 9999px;
+      font-size: 0.78rem; font-weight: 500;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.55);
+    }
+    .w-chip-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+    /* ── Stats row ── */
+    .w-stats {
+      display: flex; flex-wrap: wrap; gap: 0; justify-content: center;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1rem; padding: 1.5rem 2rem; margin-bottom: 6rem;
+      max-width: 700px; animation: fade-up 0.6s ease 0.5s both;
+    }
+    .w-stat {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 2rem;
+    }
+    .w-stat + .w-stat { border-left: 1px solid rgba(255,255,255,0.08); }
+    .w-stat-val { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1; }
+    .w-stat-lbl { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem; }
+
+    /* ── How it works ── */
+    .w-how {
+      position: relative; z-index: 1;
+      padding: 5rem 1.5rem; text-align: center;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .w-how-eyebrow {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: #818cf8; margin-bottom: 1rem;
+    }
+    .w-how-title { font-size: clamp(1.75rem,4vw,2.5rem); font-weight: 800; color: #fff; margin-bottom: 1rem; }
+    .w-how-sub { font-size: 1rem; color: rgba(255,255,255,0.45); max-width: 480px; margin: 0 auto 3.5rem; }
+
+    .w-steps {
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+      gap: 1.5rem; max-width: 900px; margin: 0 auto;
+    }
+    .w-step {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.25rem; padding: 1.75rem; text-align: left;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .w-step:hover { border-color: rgba(99,102,241,0.35); background: rgba(99,102,241,0.05); }
+    .w-step-num {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      color: #818cf8; margin-bottom: 0.75rem;
+    }
+    .w-step-icon {
+      width: 44px; height: 44px; border-radius: 0.875rem; margin-bottom: 1rem;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    }
+    .w-step-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+    .w-step-desc { font-size: 0.85rem; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+    /* ── Prompt showcase ── */
+    .w-prompt-box {
+      background: rgba(15,23,42,0.8); border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 1rem; padding: 1.25rem 1.5rem;
+      max-width: 640px; margin: 0 auto 2rem; text-align: left;
+      box-shadow: 0 0 40px rgba(99,102,241,0.08);
+    }
+    .w-prompt-label { font-size: 0.65rem; font-weight: 600; color: #818cf8; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; }
+    .w-prompt-text {
+      font-size: 0.9rem; color: rgba(255,255,255,0.85); line-height: 1.6;
+      font-family: 'Inter', sans-serif; min-height: 1.5em;
+    }
+    .w-prompt-cursor::after {
+      content: '|'; color: #818cf8; font-weight: 300;
+      animation: blink 0.9s step-end infinite;
+    }
+    @keyframes blink { 50%{ opacity:0; } }
+
+    /* ── Footer ── */
+    .w-footer {
+      position: relative; z-index: 1;
+      padding: 2rem 1.5rem; text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .w-footer p { font-size: 0.78rem; color: rgba(255,255,255,0.25); }
+
+    /* Animations */
+    @keyframes fade-up {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .w-stat { padding: 0 1rem; }
+      .w-cta-ai { padding: 0.875rem 1.5rem; }
+      .w-steps { grid-template-columns: 1fr; }
+      .w-nav-links .w-nav-link:not(.w-nav-cta) { display: none; }
+    }
+    .w-nav-cta {
+      padding: 0.45rem 1rem; background: rgba(99,102,241,0.2);
+      border: 1px solid rgba(99,102,241,0.4); border-radius: 0.75rem;
+      color: #a5b4fc !important; font-weight: 600;
+    }
+    .w-nav-cta:hover { background: rgba(99,102,241,0.35) !important; color: #fff !important; }
+  </style>
+</head>
+<body class="font-sans">
+
+  <!-- Ambient orbs -->
+  <div class="w-orb w-orb-1"></div>
+  <div class="w-orb w-orb-2"></div>
+  <div class="w-orb w-orb-3"></div>
+
+  <!-- ══════════ NAV ══════════ -->
+  <nav class="w-nav">
+    <a href="welcome.html" class="w-logo">
+      <div class="w-logo-orb">🧬</div>
+      <span class="w-logo-name">EpitopX AI</span>
+    </a>
+    <div class="w-nav-links">
+      <a href="index.html" class="w-nav-link">Tools</a>
+      <a href="pricing.html" class="w-nav-link">Pricing</a>
+      <a href="privacy.html" class="w-nav-link">Privacy</a>
+      <a href="login.html" class="w-nav-link">Sign in</a>
+      <a href="signup.html" class="w-nav-link w-nav-cta">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="w-hero">
+
+    <!-- AI badge -->
+    <div class="w-ai-badge">
+      <span class="w-ai-badge-dot"></span>
+      AI-Powered Bioinformatics Platform
+    </div>
+
+    <!-- Main title -->
+    <h1 class="w-title">
+      Bioinformatics<br>
+      <span class="w-title-gradient">at the speed of thought</span>
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="w-subtitle">
+      Search proteins, predict B-cell &amp; T-cell epitopes, and run
+      complete bioinformatics workflows — just by talking to your AI Agent.
+    </p>
+
+    <!-- 3 CTAs -->
+    <div class="w-ctas">
+      <!-- PRIMARY: AI Agent -->
+      <a href="login.html?next=agent.html" class="w-cta-ai" id="cta-ai">
+        <div class="w-cta-ai-icon">🤖</div>
+        <div class="w-cta-ai-text">
+          <span class="w-cta-ai-label">Most powerful feature</span>
+          <span class="w-cta-ai-name">Start AI Assistant →</span>
+        </div>
+      </a>
+
+      <!-- SECONDARY: Search -->
+      <a href="login.html?next=protein-search.html" class="w-cta-sec">
+        <svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        Search Proteins
+      </a>
+
+      <!-- TERTIARY: Onboarding -->
+      <button class="w-cta-sec" onclick="startOnboarding()" id="how-it-works-btn">
+        <svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        How It Works
+      </button>
+    </div>
+
+    <!-- Feature chips -->
+    <div class="w-features">
+      <span class="w-chip"><span class="w-chip-dot" style="background:#60a5fa"></span> B-cell Epitope Prediction</span>
+      <span class="w-chip"><span class="w-chip-dot" style="background:#34d399"></span> T-cell / MHC Analysis</span>
+      <span class="w-chip"><span class="w-chip-dot" style="background:#a78bfa"></span> UniProt &amp; NCBI Search</span>
+      <span class="w-chip"><span class="w-chip-dot" style="background:#fb923c"></span> 3D Structure Visualization</span>
+      <span class="w-chip"><span class="w-chip-dot" style="background:#f472b6"></span> MSA &amp; DNA Alignment</span>
+      <span class="w-chip"><span class="w-chip-dot" style="background:#6ee7b7"></span> Protein Comparison</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="w-stats">
+      <div class="w-stat">
+        <span class="w-stat-val" style="background:linear-gradient(135deg,#60a5fa,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">10+</span>
+        <span class="w-stat-lbl">Analysis Tools</span>
+      </div>
+      <div class="w-stat">
+        <span class="w-stat-val" style="background:linear-gradient(135deg,#34d399,#0d9488);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">AI</span>
+        <span class="w-stat-lbl">Natural Language</span>
+      </div>
+      <div class="w-stat">
+        <span class="w-stat-val" style="background:linear-gradient(135deg,#f472b6,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Free</span>
+        <span class="w-stat-lbl">AI Model Included</span>
+      </div>
+      <div class="w-stat">
+        <span class="w-stat-val" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">8</span>
+        <span class="w-stat-lbl">Languages</span>
+      </div>
+    </div>
+
+    <!-- Animated prompt showcase -->
+    <div class="w-prompt-box">
+      <div class="w-prompt-label">✦ Example AI prompts</div>
+      <div class="w-prompt-text w-prompt-cursor" id="prompt-showcase"></div>
+    </div>
+    <p style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin-bottom:1rem;">
+      Just type naturally — the AI handles the rest
+    </p>
+
+  </section>
+
+  <!-- ══════════ HOW IT WORKS ══════════ -->
+  <section class="w-how" id="how-section">
+    <div class="w-how-eyebrow">How it works</div>
+    <h2 class="w-how-title">From question to answer in seconds</h2>
+    <p class="w-how-sub">No bioinformatics expertise required. The AI understands plain language.</p>
+
+    <div class="w-steps">
+      <div class="w-step">
+        <div class="w-step-num">STEP 01</div>
+        <div class="w-step-icon" style="background:rgba(99,102,241,0.15)">💬</div>
+        <div class="w-step-title">Ask in plain English</div>
+        <div class="w-step-desc">Type your question or paste a protein sequence. No special syntax required.</div>
+      </div>
+      <div class="w-step">
+        <div class="w-step-num">STEP 02</div>
+        <div class="w-step-icon" style="background:rgba(13,148,136,0.15)">🤖</div>
+        <div class="w-step-title">AI runs the workflow</div>
+        <div class="w-step-desc">The agent searches databases, runs predictions, and synthesizes results automatically.</div>
+      </div>
+      <div class="w-step">
+        <div class="w-step-num">STEP 03</div>
+        <div class="w-step-icon" style="background:rgba(59,130,246,0.15)">📊</div>
+        <div class="w-step-title">Explore your results</div>
+        <div class="w-step-desc">Get epitope predictions, 3D visualizations, sequence analysis — all in one place.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:3rem">
+      <a href="login.html?next=agent.html" class="w-cta-ai" style="display:inline-flex;">
+        <div class="w-cta-ai-icon">🤖</div>
+        <div class="w-cta-ai-text">
+          <span class="w-cta-ai-label">Ready to start?</span>
+          <span class="w-cta-ai-name">Launch AI Assistant →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="w-footer">
+    <div style="display:flex;align-items:center;justify-content:center;gap:1.5rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+      <a href="privacy.html" style="font-size:0.78rem;color:rgba(255,255,255,0.3);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy Policy</a>
+      <a href="cookies.html" style="font-size:0.78rem;color:rgba(255,255,255,0.3);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Cookie Policy</a>
+      <a href="pricing.html" style="font-size:0.78rem;color:rgba(255,255,255,0.3);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Pricing</a>
+      <a href="index.html" style="font-size:0.78rem;color:rgba(255,255,255,0.3);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Classic Tools</a>
+    </div>
+    <p>© 2026 EpitopX AI — AI-Powered Bioinformatics Platform</p>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/onboarding.js"></script>
+  <script>
+    // ── Handle next param for AI CTA ───────────────────────────
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const next = params.get('next');
+      if (next) {
+        // Store redirect for after login
+        try { sessionStorage.setItem('_authRedirect', next); } catch(_) {}
+      }
+    })();
+
+    // ── Animated prompt typewriter ──────────────────────────────
+    const PROMPTS = [
+      "Analyze the SARS-CoV-2 spike protein and predict B-cell epitopes",
+      "Find a protein related to malaria and summarize its structure",
+      "Compare two proteins and show their epitope similarities",
+      "Search UniProt for human p53 and list its functional domains",
+      "Predict T-cell epitopes for the Theileria parva surface antigen",
+      "What is MHC Class I and how does it present antigens?",
+    ];
+    let pIdx = 0, cIdx = 0, deleting = false;
+    const el = document.getElementById('prompt-showcase');
+
+    function typewrite() {
+      const current = PROMPTS[pIdx];
+      if (!deleting) {
+        el.textContent = current.slice(0, ++cIdx);
+        if (cIdx >= current.length) {
+          deleting = true;
+          setTimeout(typewrite, 2200);
+          return;
+        }
+        setTimeout(typewrite, 38);
+      } else {
+        el.textContent = current.slice(0, --cIdx);
+        if (cIdx === 0) {
+          deleting = false;
+          pIdx = (pIdx + 1) % PROMPTS.length;
+          setTimeout(typewrite, 400);
+          return;
+        }
+        setTimeout(typewrite, 18);
+      }
+    }
+    typewrite();
+
+    // ── Smooth scroll to How It Works ──────────────────────────
+    function scrollToHow() {
+      document.getElementById('how-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ── Start onboarding from "How It Works" button ─────────────
+    function startOnboarding() {
+      // Reset flag so modal shows even if already seen
+      if (window.EpitopXOnboarding) {
+        window.EpitopXOnboarding.show();
+      } else {
+        scrollToHow();
+      }
+    }
+
+    // ── Handle ?next= redirect from nav CTA links ───────────────
+    document.querySelectorAll('[href*="?next="]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const url = new URL(this.href, location.origin);
+        const next = url.searchParams.get('next');
+        if (next) {
+          try { sessionStorage.setItem('_authRedirect', next); } catch(_) {}
+        }
+        // If already logged in, go directly
+        if (typeof Auth !== 'undefined' && Auth.isAuthenticated()) {
+          e.preventDefault();
+          location.href = next || 'dashboard.html';
+        }
+      });
+    });
+  </script>
+  <script src="js/cookie-consent.js"></script>
+</body>
+</html>
