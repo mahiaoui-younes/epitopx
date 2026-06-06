@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EpitopX AI — Shared Sidebar Logic
  * Handles: active page detection, collapse toggle, mobile open/close, auth profile
  */
@@ -6,7 +6,7 @@
   'use strict';
 
   /* ── route guard ─────────────────────────────────────────── */
-  const PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'pricing.html', 'viewer.html', ''];
+  const PUBLIC_PAGES = ['index.html', 'login.html', 'signup.html', 'pricing.html', 'viewer.html', 'privacy.html', 'cookies.html', ''];
   const currentPage  = location.pathname.split('/').pop() || 'index.html';
 
   if (!PUBLIC_PAGES.includes(currentPage) &&
