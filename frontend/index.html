@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EpitopX AI — Analyse Structurale</title>
+  <title>EpitopX AI — Protein Structure Analysis Platform</title>
+  <meta name="description" content="EpitopX AI lets you convert DNA to protein, visualize 3D structures, search epitopes, and compare proteins — all locally in your browser. Built for bioinformatics research on Theileria proteins.">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -265,56 +266,122 @@
     </div>
 
     <div class="hero-content max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Platform badge -->
       <div class="hero-badge animate-fade-in">
         <span class="hero-badge-dot"></span>
-        <span data-i18n="hero.badge">Plateforme d'analyse structurale — Theileria</span>
+        <span>Bioinformatics Platform — Theileria Protein Research</span>
       </div>
 
+      <!-- Crystal-clear headline -->
       <h1 class="hero-title animate-fade-in" style="animation-delay:0.1s">
-        <span data-i18n="hero.title.pre">Analysez vos </span><span class="gradient-text" data-i18n="hero.title.grad">protéines</span><br class="hidden sm:block">
-        <span data-i18n="hero.title.post"> en temps réel</span>
+        From <span class="gradient-text">DNA</span> to
+        <span class="gradient-text">3D Protein</span><br class="hidden sm:block">
+        in seconds
       </h1>
 
-      <p class="hero-desc animate-fade-in" style="animation-delay:0.2s" data-i18n="hero.desc">
-        Convertissez des séquences ADN en protéines, explorez leurs structures 3D
-        et comparez-les — le tout directement dans votre navigateur.
+      <!-- Simple one-liner explaining what EpitopX is -->
+      <p class="hero-desc animate-fade-in" style="animation-delay:0.2s">
+        <strong>EpitopX AI</strong> is an all-in-one protein analysis platform.
+        Paste a DNA sequence → get the protein → explore its 3D structure → find epitopes — all locally in your browser, no cloud needed.
       </p>
 
+      <!-- Clear CTAs -->
       <div class="hero-ctas animate-fade-in" style="animation-delay:0.3s">
-        <a href="#convert-section" class="btn-primary hero-btn-primary flex items-center gap-2">
+        <a href="#convert-section" class="btn-primary hero-btn-primary flex items-center gap-2" id="cta-start-analysis">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span data-i18n="hero.cta.start">Commencer l'analyse</span>
+          Start Analysis
         </a>
-        <a href="dashboard.html" class="btn-secondary hero-btn-secondary flex items-center gap-2">
+        <a href="#how-it-works" class="btn-secondary hero-btn-secondary flex items-center gap-2" id="cta-how-it-works">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          How it Works
+        </a>
+        <a href="dashboard.html" class="hero-btn-ghost flex items-center gap-2" id="cta-gallery">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-          <span data-i18n="hero.cta.gallery">Explorer la galerie</span>
+          Protein Gallery
         </a>
-        <a href="viewer.html" class="hero-btn-ghost flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
-          <span data-i18n="hero.cta.viewer">Viewer 3D</span>
-        </a>
+      </div>
+
+      <!-- Quick Start tutorial -->
+      <div class="hero-tutorial animate-fade-in max-w-4xl mx-auto mt-6 rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_25px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-6" style="animation-delay:0.35s">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div class="max-w-2xl">
+            <div class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white">
+              <span class="h-2 w-2 rounded-full bg-teal-400"></span>
+              Quick Start
+            </div>
+            <h4 class="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Get started in 3 steps</h4>
+            <p class="mt-2 text-sm leading-6 text-slate-600 sm:text-base">A short onboarding guide for first-time users to understand the core workflow faster.</p>
+          </div>
+          <a href="#how-it-works" class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+            View full workflow
+          </a>
+        </div>
+
+        <div class="mt-5 grid gap-3 md:grid-cols-3">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white">1</div>
+              <div>
+                <h5 class="font-semibold text-slate-900">Create an account</h5>
+                <p class="text-xs text-slate-500">Save analyses and return later.</p>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Sign up or log in before you start so your results, sessions, and saved proteins stay organized.</p>
+            <a href="signup.html" class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Open signup -></a>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-sm font-bold text-white">2</div>
+              <div>
+                <h5 class="font-semibold text-slate-900">Paste DNA</h5>
+                <p class="text-xs text-slate-500">Convert sequences in one click.</p>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Use the DNA to protein tool to paste a sequence or upload FASTA and inspect the translated output.</p>
+            <a href="#convert-section" class="mt-4 inline-flex text-sm font-semibold text-teal-700 hover:text-teal-800">Start conversion -></a>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-sm font-bold text-white">3</div>
+              <div>
+                <h5 class="font-semibold text-slate-900">Analyze results</h5>
+                <p class="text-xs text-slate-500">Explore structure and epitopes.</p>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Open the 3D viewer, compare proteins, and search epitopes once your sequence is ready.</p>
+            <a href="viewer.html" class="mt-4 inline-flex text-sm font-semibold text-rose-700 hover:text-rose-800">Open viewer -></a>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href="dashboard.html" class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">Browse proteins</a>
+          <a href="msa-analysis.html" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Try MSA analysis</a>
+          <a href="epitope-search.html" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Search epitopes</a>
+        </div>
       </div>
 
       <!-- Stats pill -->
       <div class="hero-stats animate-fade-in" style="animation-delay:0.45s">
         <div class="hero-stat">
           <span class="hero-stat-value text-blue-600" id="stat-proteins">6</span>
-          <span class="hero-stat-label" data-i18n="stat.proteins">Protéines</span>
+          <span class="hero-stat-label">Proteins</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
           <span class="hero-stat-value text-teal-600">3</span>
-          <span class="hero-stat-label" data-i18n="stat.species">Espèces</span>
+          <span class="hero-stat-label">Species</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
           <span class="hero-stat-value text-rose-500">3D</span>
-          <span class="hero-stat-label" data-i18n="stat.visualization">Visualisation</span>
+          <span class="hero-stat-label">Viewer</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
           <span class="hero-stat-value text-emerald-600">100%</span>
-          <span class="hero-stat-label" data-i18n="stat.local">Local</span>
+          <span class="hero-stat-label">Local</span>
         </div>
       </div>
 
@@ -324,13 +391,215 @@
     </div>
   </section>
 
+  <!-- ══════════ HOW IT WORKS ══════════ -->
+  <section id="how-it-works" class="hiw-section">
+    <div class="home-section-inner">
+      <div class="section-header">
+        <span class="section-eyebrow">Workflow</span>
+        <h2 class="section-title">How EpitopX Works</h2>
+        <p class="section-desc">Follow this simple 4-step pipeline from raw DNA to full protein analysis</p>
+      </div>
+
+      <!-- Pipeline steps -->
+      <div class="hiw-pipeline">
+        <!-- Step 1 -->
+        <div class="hiw-step" data-animate>
+          <div class="hiw-step-num">1</div>
+          <div class="hiw-step-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h3 class="hiw-step-title">Paste your DNA</h3>
+          <p class="hiw-step-desc">Paste a raw DNA sequence or upload a <code>.fasta</code> file. EpitopX validates it automatically.</p>
+          <a href="#convert-section" class="hiw-step-link">Try it →</a>
+        </div>
+
+        <div class="hiw-arrow" aria-hidden="true">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="hiw-step" data-animate>
+          <div class="hiw-step-num">2</div>
+          <div class="hiw-step-icon" style="background:linear-gradient(135deg,#0d9488,#059669);">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <h3 class="hiw-step-title">Get your Protein</h3>
+          <p class="hiw-step-desc">EpitopX translates your DNA into an amino acid sequence and shows ORF frames, composition, and properties.</p>
+          <a href="#convert-section" class="hiw-step-link">Convert →</a>
+        </div>
+
+        <div class="hiw-arrow" aria-hidden="true">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="hiw-step" data-animate>
+          <div class="hiw-step-num">3</div>
+          <div class="hiw-step-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          </div>
+          <h3 class="hiw-step-title">View 3D Structure</h3>
+          <p class="hiw-step-desc">Load a PDB / CIF file to see the protein's 3D conformation with interactive rotation and residue highlighting.</p>
+          <a href="viewer.html" class="hiw-step-link">Open Viewer →</a>
+        </div>
+
+        <div class="hiw-arrow" aria-hidden="true">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="hiw-step" data-animate>
+          <div class="hiw-step-num">4</div>
+          <div class="hiw-step-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+          </div>
+          <h3 class="hiw-step-title">Find Epitopes &amp; Compare</h3>
+          <p class="hiw-step-desc">Search for B-cell / T-cell epitopes and compare two proteins side-by-side with RMSD alignment.</p>
+          <a href="epitope-search.html" class="hiw-step-link">Search Epitopes →</a>
+        </div>
+      </div>
+
+      <!-- Quick explanation banner -->
+      <div class="hiw-banner">
+        <div class="hiw-banner-icon">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="hiw-banner-title">What is an Epitope?</p>
+          <p class="hiw-banner-text">An epitope is the part of a protein that is recognised by the immune system. Finding epitopes in Theileria proteins is crucial for vaccine design.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ QUICK TOOLS GRID ══════════ -->
+  <section id="tools" class="home-section" style="padding-top:2rem;">
+    <div class="home-section-inner">
+      <div class="section-header">
+        <span class="section-eyebrow">Explore the platform</span>
+        <h2 class="section-title">All Tools at a Glance</h2>
+        <p class="section-desc">Click any tool below to jump straight in</p>
+      </div>
+
+      <div class="tools-grid">
+        <!-- DNA → Protein -->
+        <a href="#convert-section" class="tool-card" id="tool-dna" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">DNA → Protein</h3>
+            <p class="tool-card-desc">Convert a DNA / FASTA sequence to protein, view ORF frames and amino acid composition.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- Protein Gallery -->
+        <a href="dashboard.html" class="tool-card" id="tool-gallery" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#0d9488,#059669);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">Protein Gallery</h3>
+            <p class="tool-card-desc">Browse all stored proteins with filters, search, and quick-view cards.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- 3D Viewer -->
+        <a href="viewer.html" class="tool-card" id="tool-viewer" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">3D Structure Viewer</h3>
+            <p class="tool-card-desc">Load a PDB / CIF file and explore the protein's 3D conformation interactively.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- Epitope Search -->
+        <a href="epitope-search.html" class="tool-card" id="tool-epitope" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">Epitope Search</h3>
+            <p class="tool-card-desc">Predict and locate B-cell and T-cell epitopes in a protein sequence.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- Protein Comparison -->
+        <a href="compare.html" class="tool-card" id="tool-compare" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#fb7185,#e11d48);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">Compare Proteins</h3>
+            <p class="tool-card-desc">Align two proteins, calculate RMSD, and view side-by-side similarity.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- NCBI / UniProt Search -->
+        <a href="ncbi-search.html" class="tool-card" id="tool-ncbi" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#64748b,#334155);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">NCBI / UniProt Search</h3>
+            <p class="tool-card-desc">Search and import protein records from NCBI or UniProt databases directly.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- DNA Alignment -->
+        <a href="dna-alignment.html" class="tool-card" id="tool-alignment" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#34d399,#059669);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">DNA Alignment</h3>
+            <p class="tool-card-desc">Align two DNA sequences and visualize matches, mismatches, and gaps.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- MSA Analysis -->
+        <a href="msa-analysis.html" class="tool-card" id="tool-msa" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#60a5fa,#2563eb);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">MSA Analysis</h3>
+            <p class="tool-card-desc">Run Multiple Sequence Alignment to identify conserved regions across species.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+
+        <!-- AI Agent -->
+        <a href="agent.html" class="tool-card tool-card-ai" id="tool-agent" data-animate>
+          <div class="tool-card-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+          </div>
+          <div class="tool-card-body">
+            <h3 class="tool-card-title">AI Agent <span class="tool-new-badge">AI</span></h3>
+            <p class="tool-card-desc">Ask the AI assistant questions about your protein, get summaries, and get analysis suggestions.</p>
+          </div>
+          <span class="tool-card-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- ══════════ CONVERSION SECTION ══════════ -->
-  <section id="convert-section" class="home-section">
+  <section id="convert-section" class="home-section" style="background:linear-gradient(180deg,#f7f8fc 0%,#eef2ff 100%);">
     <div class="home-section-inner">
     <div class="section-header">
-      <span class="section-eyebrow" data-i18n="section.convert.eyebrow">Outil principal</span>
-      <h2 class="section-title" data-i18n="section.convert.title">Conversion ADN → Protéine</h2>
-      <p class="section-desc" data-i18n="section.convert.desc">Entrez votre séquence ADN ou importez un fichier FASTA pour la traduire en séquence protéique.</p>
+      <span class="section-eyebrow">Main Tool</span>
+      <h2 class="section-title">DNA → Protein Converter</h2>
+      <p class="section-desc">Paste your DNA sequence or import a FASTA file to translate it into a protein sequence with full analysis.</p>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-8">
@@ -341,25 +610,25 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
             <div>
-              <h3 class="text-base font-semibold text-gray-900" data-i18n="convert.input.title">Séquence ADN / FASTA</h3>
-              <p class="text-xs text-gray-400 mt-0.5" data-i18n="convert.input.subtitle">Collez ou importez votre séquence</p>
+              <h3 class="text-base font-semibold text-gray-900">DNA / FASTA Sequence</h3>
+              <p class="text-xs text-gray-400 mt-0.5">Paste or import your sequence below</p>
             </div>
           </div>
         <!-- Tabs -->
         <div class="flex gap-1 bg-gray-100 p-1 rounded-lg mb-5">
-          <button class="tab-btn active flex-1" onclick="switchTab('text')" id="tab-text" data-i18n="convert.tab.text">Texte</button>
-          <button class="tab-btn flex-1" onclick="switchTab('file')" id="tab-file" data-i18n="convert.tab.file">Fichier</button>
+          <button class="tab-btn active flex-1" onclick="switchTab('text')" id="tab-text">Text</button>
+          <button class="tab-btn flex-1" onclick="switchTab('file')" id="tab-file">File</button>
         </div>
 
         <!-- Text input tab -->
         <div id="panel-text">
           <textarea id="dna-input" class="input-field mb-3" rows="6"
             data-i18n-placeholder="convert.placeholder"
-            placeholder="Collez votre séquence ADN ici...&#10;Ex: ATGGTTCTGTCTCCTGCTGAT...&#10;&#10;Ou au format FASTA :&#10;>gene_001&#10;ATGGTTCTGTCTCCTGCTGAT..."></textarea>
+            placeholder="Paste your DNA sequence here...&#10;e.g. ATGGTTCTGTCTCCTGCTGAT...&#10;&#10;Or in FASTA format:&#10;>gene_001&#10;ATGGTTCTGTCTCCTGCTGAT..."></textarea>
           <div class="flex items-center justify-between text-xs text-gray-400 mb-5">
-            <span id="char-count">0 nucléotides</span>
-            <button class="text-blue-600 hover:text-blue-700 transition-colors" onclick="loadExampleDNA()" data-i18n="convert.loadExample">
-              Charger un exemple
+            <span id="char-count">0 nucleotides</span>
+            <button class="text-blue-600 hover:text-blue-700 transition-colors" onclick="loadExampleDNA()" id="btn-load-example">
+              Load example sequence
             </button>
           </div>
         </div>
@@ -372,8 +641,8 @@
                ondragleave="this.classList.remove('dragover')"
                ondrop="handleFileDrop(event)">
             <svg class="w-10 h-10 mx-auto mb-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-            <p class="text-sm text-gray-500"><span data-i18n="convert.dropzone.main">Glissez un fichier .fasta ou .txt ici</span></p>
-            <p class="text-xs text-gray-400 mt-1" data-i18n="convert.dropzone.sub">ou cliquez pour parcourir</p>
+            <p class="text-sm text-gray-500">Drag a <code>.fasta</code> or <code>.txt</code> file here</p>
+            <p class="text-xs text-gray-400 mt-1">or click to browse</p>
           </div>
           <input type="file" id="file-input" accept=".fasta,.fa,.txt,.fna" class="hidden" onchange="handleFileSelect(event)">
           <div id="file-info" class="hidden text-sm text-emerald-600 mb-4 flex items-center gap-2">
@@ -387,7 +656,7 @@
           <div class="flex items-start gap-3">
             <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
             <div>
-              <p class="text-red-600 font-medium text-sm mb-1" data-i18n="convert.error.title">Erreur de validation</p>
+              <p class="text-red-600 font-medium text-sm mb-1">Validation Error</p>
               <ul id="error-list" class="text-red-500 text-xs space-y-1"></ul>
             </div>
           </div>
@@ -397,9 +666,9 @@
         <div class="flex flex-wrap gap-3">
           <button class="btn-primary flex items-center gap-2 flex-1 justify-center" onclick="convertDNA()" id="btn-convert">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span data-i18n="convert.btn">Convertir en protéine</span>
+            Convert to Protein
           </button>
-          <button class="btn-secondary flex items-center gap-2" onclick="clearInput()" title="Effacer">
+          <button class="btn-secondary flex items-center gap-2" onclick="clearInput()" title="Clear" id="btn-clear">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>
@@ -412,8 +681,8 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-              <h3 class="text-base font-semibold text-gray-900" data-i18n="convert.result.title">Résultat</h3>
-              <p class="text-xs text-gray-400 mt-0.5" data-i18n="convert.result.subtitle">Séquence traduite et analyse</p>
+              <h3 class="text-base font-semibold text-gray-900">Result</h3>
+              <p class="text-xs text-gray-400 mt-0.5">Translated sequence and analysis</p>
             </div>
           </div>
         <!-- Empty state -->
@@ -421,7 +690,8 @@
           <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 animate-float">
             <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
           </div>
-          <p class="text-gray-400 text-sm" data-i18n="convert.result.empty">Entrez une séquence ADN et cliquez sur "Convertir en protéine"</p>
+          <p class="text-gray-400 text-sm">Enter a DNA sequence and click <strong>"Convert to Protein"</strong></p>
+          <p class="text-gray-300 text-xs mt-2">Your amino acid sequence, ORF frames, and composition will appear here.</p>
         </div>
 
         <!-- Result content -->
@@ -456,11 +726,11 @@
             <div class="flex items-start justify-between gap-2">
               <p class="text-[10px] text-gray-400 leading-relaxed flex-1" id="protein-length"></p>
               <div class="flex gap-2 shrink-0">
-                <button class="text-xs text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1" onclick="copyProtein()" title="Copy sequence">
+                <button class="text-xs text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1" onclick="copyProtein()" title="Copy sequence" id="btn-copy-protein">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   <span data-i18n="convert.copy">Copy</span>
                 </button>
-                <button class="text-xs text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1" onclick="copyFASTA()" title="Copy as FASTA">
+                <button class="text-xs text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1" onclick="copyFASTA()" title="Copy as FASTA" id="btn-copy-fasta">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                   <span data-i18n="convert.fasta">FASTA</span>
                 </button>
@@ -482,7 +752,7 @@
           <div class="border-t border-gray-100 pt-4">
             <button class="btn-primary w-full flex items-center justify-center gap-2 text-sm" onclick="checkInDatabase()" id="btn-check-db">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <span data-i18n="convert.btn.checkDb">Vérifier dans la base de données</span>
+              <span data-i18n="convert.btn.checkDb">Check in Database</span>
             </button>
             <div id="db-result" class="mt-4"></div>
           </div>
@@ -496,9 +766,9 @@
   <section id="features" class="features-section">
     <div class="home-section-inner">
       <div class="section-header">
-        <span class="section-eyebrow" data-i18n="features.eyebrow">Capacités</span>
-        <h2 class="section-title" data-i18n="features.title">Fonctionnalités clés</h2>
-        <p class="section-desc" data-i18n="features.desc">Tout ce dont vous avez besoin pour l'analyse structurale de protéines</p>
+        <span class="section-eyebrow">Capabilities</span>
+        <h2 class="section-title">Key Features</h2>
+        <p class="section-desc">Everything you need for structural protein analysis — locally, without cloud dependency</p>
       </div>
 
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -506,50 +776,43 @@
           <div class="feature-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           </div>
-          <h3 class="feature-title" data-i18n="feat.dna.title">Traduction ADN</h3>
-          <p class="feature-desc" data-i18n="feat.dna.desc">Convertissez des séquences ADN / FASTA en protéines avec validation automatique en temps réel.</p>
-          <a href="#convert-section" class="feature-link" data-i18n="feat.dna.link">Essayer →</a>
+          <h3 class="feature-title">DNA Translation</h3>
+          <p class="feature-desc">Instantly translate DNA or FASTA sequences into proteins. Supports 6-frame ORF detection and FASTA export.</p>
+          <a href="#convert-section" class="feature-link">Try it →</a>
         </div>
         <div class="feature-card" data-animate>
           <div class="feature-icon" style="background:linear-gradient(135deg,#2dd4bf,#0d9488);">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
           </div>
-          <h3 class="feature-title" data-i18n="feat.3d.title">Visualisation 3D</h3>
-          <p class="feature-desc" data-i18n="feat.3d.desc">Explorez les structures protéiques en 3D avec rotation, zoom et sélection interactive des résidus.</p>
-          <a href="viewer.html" class="feature-link" data-i18n="feat.3d.link">Ouvrir →</a>
+          <h3 class="feature-title">Interactive 3D Viewer</h3>
+          <p class="feature-desc">Explore protein 3D structures with rotation, zoom, and interactive residue selection powered by 3Dmol.js.</p>
+          <a href="viewer.html" class="feature-link">Open →</a>
         </div>
         <div class="feature-card" data-animate>
           <div class="feature-icon" style="background:linear-gradient(135deg,#fb7185,#e11d48);">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           </div>
-          <h3 class="feature-title" data-i18n="feat.compare.title">Comparaison</h3>
-          <p class="feature-desc" data-i18n="feat.compare.desc">Comparez plusieurs protéines côte à côte, calculez le RMSD et le pourcentage de similarité.</p>
-          <a href="compare.html" class="feature-link" data-i18n="feat.compare.link">Comparer →</a>
+          <h3 class="feature-title">Protein Comparison</h3>
+          <p class="feature-desc">Compare multiple proteins side-by-side, compute RMSD alignment scores and similarity percentages.</p>
+          <a href="compare.html" class="feature-link">Compare →</a>
         </div>
         <div class="feature-card" data-animate>
           <div class="feature-icon" style="background:linear-gradient(135deg,#34d399,#059669);">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7zm0 5h16"/></svg>
           </div>
-          <h3 class="feature-title" data-i18n="feat.gallery.title">Galerie interactive</h3>
-          <p class="feature-desc" data-i18n="feat.gallery.desc">Parcourez la base de données avec filtres avancés, recherche et cards animées.</p>
-          <a href="dashboard.html" class="feature-link" data-i18n="feat.gallery.link">Parcourir →</a>
+          <h3 class="feature-title">Interactive Gallery</h3>
+          <p class="feature-desc">Browse the protein database with advanced filters, search, and animated protein cards.</p>
+          <a href="dashboard.html" class="feature-link">Browse →</a>
         </div>
         <div class="feature-card" data-animate>
           <div class="feature-icon" style="background:linear-gradient(135deg,#fbbf24,#d97706);">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
           </div>
-          <h3 class="feature-title" data-i18n="feat.pdb.title">Import PDB / CIF</h3>
-          <p class="feature-desc" data-i18n="feat.pdb.desc">Importez vos propres fichiers PDB ou mmCIF pour une visualisation instantanée dans le viewer.</p>
-          <a href="viewer.html" class="feature-link" data-i18n="feat.pdb.link">Importer →</a>
+          <h3 class="feature-title">PDB / CIF Import</h3>
+          <p class="feature-desc">Upload your own PDB or mmCIF structure files for instant interactive visualization in the 3D viewer.</p>
+          <a href="viewer.html" class="feature-link">Import →</a>
         </div>
-        <div class="feature-card" data-animate>
-          <div class="feature-icon" style="background:linear-gradient(135deg,#60a5fa,#2563eb);">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="feat.api.title">API Ready</h3>
-          <p class="feature-desc" data-i18n="feat.api.desc">Architecture modulaire avec hooks prêts pour intégrer vos APIs backend et bases de données externes.</p>
-          <span class="feature-link" style="color:#94a3b8;cursor:default;" data-i18n="feat.api.link">Intégré</span>
-        </div>
+        <!-- Removed: '100% Local & Private' feature as requested -->
       </div>
     </div>
   </section>
@@ -564,39 +827,42 @@
             <span class="font-bold text-lg" style="background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">EpitopX AI</span>
             <span class="tag tag-violet text-[10px]">v1.0</span>
           </div>
-          <p class="text-sm text-gray-400 leading-relaxed max-w-xs" data-i18n="footer.platform">
-            Plateforme d'analyse structurale de protéines de Theileria — entièrement locale, sans cloud.
+          <p class="text-sm text-gray-400 leading-relaxed max-w-xs">
+            Structural analysis platform for Theileria proteins.
           </p>
         </div>
         <div>
-          <h4 class="footer-heading" data-i18n="footer.nav">Navigation</h4>
+          <h4 class="footer-heading">Navigation</h4>
           <ul class="footer-links">
-            <li><a href="index.html" data-i18n="nav.home">Accueil</a></li>
-            <li><a href="dashboard.html" data-i18n="nav.dashboard">Dashboard</a></li>
-            <li><a href="viewer.html" data-i18n="nav.viewer3d">Viewer 3D</a></li>
-            <li><a href="compare.html" data-i18n="nav.compare">Comparaison</a></li>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#how-it-works">How it Works</a></li>
+            <li><a href="#tools">All Tools</a></li>
+            <li><a href="dashboard.html">Protein Gallery</a></li>
+            <li><a href="agent.html">AI Agent</a></li>
           </ul>
         </div>
         <div>
-          <h4 class="footer-heading" data-i18n="footer.features">Fonctionnalités</h4>
+          <h4 class="footer-heading">Tools</h4>
           <ul class="footer-links">
-            <li><a href="#convert-section" data-i18n="footer.feat.dna">Traduction ADN</a></li>
-            <li><a href="viewer.html" data-i18n="footer.feat.3d">Structure 3D</a></li>
-            <li><a href="viewer.html" data-i18n="footer.feat.epitopes">Prédiction épitopes</a></li>
-            <li><a href="compare.html" data-i18n="footer.feat.rmsd">Alignement RMSD</a></li>
+            <li><a href="#convert-section">DNA → Protein</a></li>
+            <li><a href="viewer.html">3D Viewer</a></li>
+            <li><a href="epitope-search.html">Epitope Search</a></li>
+            <li><a href="compare.html">Compare Proteins</a></li>
+            <li><a href="dna-alignment.html">DNA Alignment</a></li>
+            <li><a href="msa-analysis.html">MSA Analysis</a></li>
           </ul>
         </div>
         <div>
-          <h4 class="footer-heading">Légal</h4>
+          <h4 class="footer-heading">Legal</h4>
           <ul class="footer-links">
-            <li><a href="privacy.html">Politique de Confidentialité</a></li>
-            <li><a href="cookies.html">Politique de Cookies</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="cookies.html">Cookie Policy</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <p class="text-xs text-gray-500" data-i18n="footer.copyright">© 2026 EpitopX AI — Mode local</p>
-        <p class="text-xs text-gray-600" data-i18n="footer.powered">Powered by 3Dmol.js · Tailwind CSS · Inter</p>
+        <p class="text-xs text-gray-500">© 2026 EpitopX AI — Local Mode</p>
+        <p class="text-xs text-gray-600">Powered by 3Dmol.js · Tailwind CSS · Inter</p>
       </div>
     </div>
   </footer>

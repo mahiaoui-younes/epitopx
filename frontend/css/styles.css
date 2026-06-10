@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    EpitopX AI - Scientific Light Theme
    Professional UI for bioinformatics research
    ============================================ */
@@ -1551,4 +1551,283 @@ kbd {
 /* ── Dark mode support (future) ── */
 @media (prefers-color-scheme: dark) {
   /* Reserved for future dark mode */
+}
+
+/* ════════════════════════════════════════════
+   HOW IT WORKS SECTION
+   ════════════════════════════════════════════ */
+
+.hiw-section {
+  padding: 5rem 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+/* Pipeline row */
+.hiw-pipeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+
+/* Arrow between steps */
+.hiw-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  padding: 0 0.25rem;
+  margin-top: 3.5rem;
+  flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .hiw-arrow { display: none; }
+}
+
+/* Individual step card */
+.hiw-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.75rem 1.25rem;
+  border-radius: 1.25rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  flex: 1 1 180px;
+  max-width: 220px;
+  min-width: 160px;
+  gap: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+@media (max-width: 768px) {
+  .hiw-step {
+    flex: 1 1 140px;
+    max-width: 100%;
+    padding: 1.25rem 1rem;
+  }
+  .hiw-pipeline {
+    gap: 0.75rem;
+  }
+}
+
+.hiw-step:hover {
+  border-color: #93c5fd;
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(59,130,246,0.1);
+}
+
+.hiw-step-num {
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2563eb, #0d9488);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0;
+}
+
+.hiw-step-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.hiw-step-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.hiw-step-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.hiw-step-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s;
+  margin-top: auto;
+}
+.hiw-step-link:hover { color: #1d4ed8; }
+
+/* Explanation banner */
+.hiw-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+  border: 1px solid #bfdbfe;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.hiw-banner-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  background: linear-gradient(135deg, #3b82f6, #0d9488);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hiw-banner-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.hiw-banner-text {
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* ════════════════════════════════════════════
+   TOOLS GRID SECTION
+   ════════════════════════════════════════════ */
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59,130,246,0.03), rgba(13,148,136,0.03));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.tool-card:hover {
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59,130,246,0.1);
+}
+
+.tool-card:hover::before {
+  opacity: 1;
+}
+
+.tool-card-ai {
+  border-color: #ddd6fe;
+  background: linear-gradient(135deg, #faf5ff, #f5f3ff);
+}
+
+.tool-card-ai:hover {
+  border-color: #a78bfa;
+  box-shadow: 0 8px 24px rgba(139,92,246,0.12);
+}
+
+.tool-card-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+.tool-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-card-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tool-card-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.tool-card-arrow {
+  font-size: 1.125rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: transform 0.2s, color 0.2s;
+}
+.tool-card:hover .tool-card-arrow {
+  transform: translateX(4px);
+  color: #3b82f6;
+}
+
+.tool-new-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: #fff;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
 }
