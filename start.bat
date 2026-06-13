@@ -34,6 +34,15 @@ if %ERRORLEVEL% neq 0 (
 echo       Migrations OK.
 echo.
 
+REM ── Ensure admin user from environment ───────────────────────────────
+echo [2/3] Ensuring admin user from environment...
+python ..\scripts\create_admin_from_env.py
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [WARNING] Admin creation script failed.
+)
+echo.
+
 REM ── 2. Start Django backend (waitress — handles concurrent users) ────────
 echo [2/3] Starting Django backend on http://localhost:8000 ...
 start "Django Backend" cmd /k "cd /d %~dp0backend && python -m waitress --port=8000 --threads=16 --connection-limit=500 --backlog=256 config.wsgi:application"
