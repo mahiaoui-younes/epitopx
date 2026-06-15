@@ -444,15 +444,31 @@ const server = http.createServer(async (req, res) => {
         ? rawAuthToken : null;
 
       // ── Helper: make an authenticated GET to the Django backend ──────────
-      async function djangoGet(path) {
+      // ── Helper: pick http or https based on URL ─────────────────────────
+      function pickTransport(urlString) {
+        return urlString.startsWith('https') ? require('https') : http;
+      }
+
+      async function djangoGet(path, _redirectCount = 0) {
+        const fullUrl = `${REMOTE_API}${path}`;
+        const transport = pickTransport(fullUrl);
         return new Promise((resolve, reject) => {
-          const r = http.get(
-            `${REMOTE_API}${path}`,
-            { headers: authToken ? { Authorization: `Token ${authToken}` } : {} },
-            (res) => {
+          const r = transport.get(
+            fullUrl,
+            { headers: { ...(authToken ? { Authorization: `Token ${authToken}` } : {}), 'ngrok-skip-browser-warning': 'true' } },
+            (innerRes) => {
+              // Follow redirects (307/308/301/302) up to 5 times
+              if ([301, 302, 307, 308].includes(innerRes.statusCode) && innerRes.headers.location && _redirectCount < 5) {
+                innerRes.resume(); // drain the body
+                const newUrl = innerRes.headers.location;
+                // If the redirect is an absolute URL update REMOTE_API prefix
+                const newPath = newUrl.startsWith('http') ? newUrl.replace(REMOTE_API, '') : newUrl;
+                resolve(djangoGet(newPath, _redirectCount + 1));
+                return;
+              }
               let data = '';
-              res.on('data', c => { data += c; });
-              res.on('end', () => resolve({ status: res.statusCode, body: data }));
+              innerRes.on('data', c => { data += c; });
+              innerRes.on('end', () => resolve({ status: innerRes.statusCode, body: data }));
             }
           );
           r.on('error', reject);
@@ -460,25 +476,35 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      async function djangoPost(path, payload, extraHeaders = {}) {
+      async function djangoPost(path, payload, extraHeaders = {}, _redirectCount = 0) {
         const buf = Buffer.from(JSON.stringify(payload));
+        const fullUrl = path.startsWith('http') ? path : `${REMOTE_API}${path}`;
+        const urlObj = new URL(fullUrl);
+        const transport = urlObj.protocol === 'https:' ? require('https') : http;
+        const defaultPort = urlObj.protocol === 'https:' ? 443 : 80;
         return new Promise((resolve, reject) => {
-          const urlObj = new URL(`${REMOTE_API}${path}`);
-          const r = http.request({
+          const r = transport.request({
             hostname: urlObj.hostname,
-            port: urlObj.port || 80,
+            port: Number(urlObj.port) || defaultPort,
             path: urlObj.pathname + (urlObj.search || ''),
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Content-Length': buf.length,
+              'ngrok-skip-browser-warning': 'true',
               ...(authToken ? { Authorization: `Token ${authToken}` } : {}),
               ...extraHeaders,
             },
-          }, (res) => {
+          }, (innerRes) => {
+            // Follow 307/308 redirects (re-POST to new location) up to 5 times
+            if ([307, 308].includes(innerRes.statusCode) && innerRes.headers.location && _redirectCount < 5) {
+              innerRes.resume();
+              resolve(djangoPost(innerRes.headers.location, payload, extraHeaders, _redirectCount + 1));
+              return;
+            }
             let data = '';
-            res.on('data', c => { data += c; });
-            res.on('end', () => resolve({ status: res.statusCode, body: data }));
+            innerRes.on('data', c => { data += c; });
+            innerRes.on('end', () => resolve({ status: innerRes.statusCode, body: data }));
           });
           r.on('error', reject);
           r.setTimeout(30000, () => r.destroy());
