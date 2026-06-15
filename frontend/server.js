@@ -510,7 +510,13 @@ const server = http.createServer(async (req, res) => {
       let proteinList = [];
       if (authToken) {
         try {
-          const dbRes = await djangoGet('/api/proteins/?page_size=50');
+          // Try /api/proteins/my_own/ first (returns only the authenticated user's proteins)
+          // Fall back to /api/proteins/ if my_own endpoint is unavailable
+          let dbRes = await djangoGet('/api/proteins/my_own/?page_size=50');
+          if (dbRes.status === 404 || dbRes.status === 405) {
+            // Endpoint not available — fall back to general list filtered by auth
+            dbRes = await djangoGet('/api/proteins/?page_size=50');
+          }
           if (dbRes.status === 200) {
             const proteins = JSON.parse(dbRes.body);
             proteinList = (proteins.results || proteins || []).slice(0, 20);
@@ -598,11 +604,18 @@ const server = http.createServer(async (req, res) => {
       // ── Detect protein LIST intent ────────────────────────────────────────
       const wantsList = /(?:mes\s+prot[ée]ines?|my\s+proteins?|what\s+proteins?|liste[r]?\s+(?:mes\s+)?prot[ée]ines?|list\s+(?:my\s+)?proteins?|affiche[r]?\s+(?:mes\s+)?prot[ée]ines?|show\s+(?:my\s+)?proteins?|montre[r]?\s+(?:mes\s+)?prot[ée]ines?|quelles?\s+prot[ée]ines?|combien\s+de\s+prot[ée]ines?|how\s+many\s+proteins?|which\s+proteins?|get\s+(?:my\s+)?proteins?)/i.test(userMessage);
       if (wantsList) {
+        if (!authToken) {
+          // User is not logged in — make that clear instead of saying "no proteins"
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ analysis: '## 🔒 Non connecté\n\nVous devez être **connecté** pour voir vos protéines.\n\n→ [Se connecter](login.html)' }));
+          return;
+        }
         if (!proteinList.length) {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ analysis: '## 📭 Aucune protéine trouvée\n\nVotre base de données est vide.\n\n**Pour commencer :**\n- Dites *"Crée une protéine nommée [nom] avec la séquence [AA]"*\n- Ou visitez [Mes Protéines](my-proteins.html)' }));
           return;
         }
+
         const rows = proteinList.map(p => `| ${p.id} | **${p.name}** | ${p.organism || '—'} | ${p.sequence ? p.sequence.length + ' aa' : '?'} | ${p.epitope_count || 0} |`).join('\n');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ analysis: `## 🧬 Vos Protéines (${proteinList.length})\n\n| ID | Nom | Organisme | Longueur | Épitopes |\n|---|---|---|---|---|\n${rows}\n\n→ [Gérer dans Mes Protéines](my-proteins.html)` }));
