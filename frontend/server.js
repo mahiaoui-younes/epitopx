@@ -580,8 +580,148 @@ const server = http.createServer(async (req, res) => {
         return '## 🤖 EpitopX AI Agent\n\nJe suis votre assistant bioinformatique EpitopX.\n\n**Actions rapides :**\n- ✅ *"Crée une protéine nommée [nom] avec la séquence [AA]"*\n- 📋 *"Montre mes protéines"*\n- 🔗 *"Traduis la séquence ADN ATGGCT..."*\n- 🎯 *"Prédit les épitopes de [protéine]"*\n- 🔍 *"Cherche [nom protéine]"*\n\n> 💡 Ajoutez `LLM_API_KEY=sk-or-v1-...` dans `frontend/.env` pour l\'IA générative (OpenRouter.ai — gratuit).';
       }
 
-      // ── Detect protein CREATION intent ───────────────────────────────────
+      // ── Detect UniProt SEARCH + CREATE intent ────────────────────────────
+      // e.g. "search UniProt for coronavirus protein and create it in my proteins"
       const msgLower = userMessage.toLowerCase();
+      const wantsUniprotCreate =
+        /(?:uniprot|uniprod|unipr[oö]t)/i.test(userMessage) &&
+        /(?:cr[ée]{1,2}[er]?|crée[r]?|ajoute[r]?|\badd\b|save|enregistre[r]?|import|importe[r]?|fetch|apporte[r]?|bring|احضر|انشأ|أضف|ابحث)/i.test(userMessage) &&
+        /(?:prot[ée]ine?|protein|بروتين)/i.test(userMessage);
+
+      if (wantsUniprotCreate) {
+        if (!authToken) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ analysis: '## 🔒 Non connecté\n\nVous devez être **connecté** pour importer une protéine depuis UniProt.\n\n→ [Se connecter](login.html)' }));
+          return;
+        }
+
+        // Extract search query: protein name or organism from the message
+        let searchQuery = '';
+        // Try to extract quoted name first
+        const quotedMatch = userMessage.match(/[\"«`''"]([^\"«`''"]{3,60})[\"»`''"]/);
+        if (quotedMatch) {
+          searchQuery = quotedMatch[1];
+        } else {
+          // Extract meaningful keywords: remove common verbs/prepositions
+          const stopWords = /\b(search|cherche|uniprot|uniprod|and|et|or|ou|in|dans|for|pour|de|the|la|le|les|my|mes|protein|proteine|create|creer|crée|import|fetch|bring|احضر|انشأ|أضف|ابحث|في|من|بروتين|الخاص|ب)\b/gi;
+          searchQuery = userMessage.replace(stopWords, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+        }
+
+        if (!searchQuery || searchQuery.length < 3) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ analysis: '## 🔍 Recherche UniProt\n\nQuel **nom de protéine** ou **organisme** voulez-vous rechercher ?\n\n**Exemples :**\n- *"Cherche spike SARS-CoV-2 sur UniProt et crée-le"*\n- *"Importe hemoglobin human depuis UniProt"*\n- *"Search UniProt for insulin human and add it"*' }));
+          return;
+        }
+
+        log.info('agent', `UniProt+Create: searching for "${searchQuery}"`);
+
+        try {
+          // 1. Search UniProt for the protein
+          const searchUrl = `https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(searchQuery)}&fields=accession,protein_name,organism_name,sequence,gene_names&format=json&size=1`;
+          const searchRes = await new Promise((resolve, reject) => {
+            const transport = require('https');
+            transport.get(searchUrl, { headers: { 'Accept': 'application/json', 'User-Agent': 'EpitopX AI/1.0' } }, (r) => {
+              let d = '';
+              r.on('data', c => { d += c; });
+              r.on('end', () => resolve({ status: r.statusCode, body: d }));
+            }).on('error', reject).setTimeout(15000, function() { this.destroy(); });
+          });
+
+          if (searchRes.status !== 200) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ analysis: `⚠️ UniProt search failed (HTTP ${searchRes.status}). Try again or search manually at [protein-search.html](protein-search.html).` }));
+            return;
+          }
+
+          const searchData = JSON.parse(searchRes.body);
+          const results = searchData.results || [];
+          if (!results.length) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ analysis: `## 🔍 Aucun résultat\n\nUniProt ne trouve rien pour **"${searchQuery}"**.\n\nEssayez un terme plus précis, par exemple :\n- *"spike SARS-CoV-2"*\n- *"hemoglobin human"*\n- *"insulin Homo sapiens"*` }));
+            return;
+          }
+
+          const entry = results[0];
+          const accession = entry.primaryAccession || '';
+          const proteinName = entry.proteinDescription?.recommendedName?.fullName?.value
+            || entry.proteinDescription?.submissionNames?.[0]?.fullName?.value
+            || accession;
+          const organism = entry.organism?.scientificName || entry.organism?.commonName || '';
+          const gene = entry.genes?.[0]?.geneName?.value || '';
+          const sequence = entry.sequence?.value || '';
+
+          if (!sequence || sequence.length < 5) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ analysis: `## ⚠️ Séquence introuvable\n\nUniProt a trouvé **${proteinName}** (${accession}) mais la séquence n'est pas disponible dans cette réponse.\n\n→ [Voir sur UniProt](https://www.uniprot.org/uniprotkb/${accession})` }));
+            return;
+          }
+
+          // 2. Actually create it in Django
+          const safeName = (gene || proteinName).replace(/[^A-Za-z0-9_\-\s]/g, '').trim().slice(0, 50) || accession;
+          const createRes = await djangoPost('/api/proteins/', {
+            name: safeName,
+            fullname: proteinName,
+            sequence,
+            organism,
+            description: `Imported from UniProt ${accession} by EpitopX AI Agent. Gene: ${gene || 'N/A'}`,
+            is_public: false,
+          });
+
+          if (createRes.status === 201) {
+            const created = JSON.parse(createRes.body);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ analysis:
+              `## ✅ Protéine importée depuis UniProt !\n\n`
+              + `| Champ | Valeur |\n|---|---|\n`
+              + `| **ID EpitopX** | ${created.id} |\n`
+              + `| **Nom** | ${safeName} |\n`
+              + `| **Nom complet** | ${proteinName} |\n`
+              + `| **Accession UniProt** | [${accession}](https://www.uniprot.org/uniprotkb/${accession}) |\n`
+              + `| **Organisme** | ${organism} |\n`
+              + `| **Longueur** | ${sequence.length} aa |\n\n`
+              + `🎯 Souhaitez-vous que je **prédise les épitopes** de cette protéine ?\n\n`
+              + `→ [Voir dans Mes Protéines](my-proteins.html)`
+            }));
+          } else if (createRes.status === 400 && createRes.body.includes('name')) {
+            // Name conflict — retry with accession as name
+            const retryRes = await djangoPost('/api/proteins/', {
+              name: accession,
+              fullname: proteinName,
+              sequence,
+              organism,
+              description: `Imported from UniProt ${accession} by EpitopX AI Agent.`,
+              is_public: false,
+            });
+            if (retryRes.status === 201) {
+              const created = JSON.parse(retryRes.body);
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ analysis:
+                `## ✅ Protéine importée depuis UniProt !\n\n`
+                + `| Champ | Valeur |\n|---|---|\n`
+                + `| **ID EpitopX** | ${created.id} |\n`
+                + `| **Nom** | ${accession} |\n`
+                + `| **Nom complet** | ${proteinName} |\n`
+                + `| **Accession** | [${accession}](https://www.uniprot.org/uniprotkb/${accession}) |\n`
+                + `| **Organisme** | ${organism} |\n`
+                + `| **Longueur** | ${sequence.length} aa |\n\n`
+                + `→ [Voir dans Mes Protéines](my-proteins.html)`
+              }));
+            } else {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ analysis: `⚠️ Erreur création (${retryRes.status}): ${retryRes.body.slice(0, 300)}` }));
+            }
+          } else {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ analysis: `⚠️ Erreur création (${createRes.status}): ${createRes.body.slice(0, 300)}` }));
+          }
+        } catch (e) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ analysis: `⚠️ Erreur lors de l'import UniProt : ${e.message}` }));
+        }
+        return;
+      }
+
+      // ── Detect protein CREATION intent ───────────────────────────────────
       const wantsCreate = /(?:cr[ée]{1,2}[er]?|crée[r]?|ajoute[r]?|\badd\b|save|enregistre[r]?|nouvelle?\s+prot[ée]ine?|new\s+protein)/i.test(userMessage)
         && /\bprot[ée]ine?s?\b/i.test(userMessage);
       if (wantsCreate) {
