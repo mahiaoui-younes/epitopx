@@ -1497,20 +1497,88 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
+      // ── FINAL CATCH-ALL: intercept any remaining UniProt+create intent before LLM ──
+      // Catches Arabic variants and any phrasing that slipped through earlier handlers
+      const _hasUniprotKw = /uniprot|uniprod/i.test(userMessage);
+      const _hasCreateKw  = /cr[eé]|ajoute|add|import|save|انشأ|انشاء|احضر|أضف|أنشئ|اجلب|ضع|سجل|bring|fetch/i.test(userMessage);
+      const _hasProteinKw = /prot[eé]|protein|بروتين/i.test(userMessage);
+      if (_hasUniprotKw && _hasCreateKw && _hasProteinKw && authToken) {
+        const _sw = /\b(search|cherche|uniprot|uniprod|and|et|or|ou|in|dans|for|pour|de|the|la|le|les|my|mes|protein|proteine|create|creer|import|fetch|bring|add|ajoute|احضر|انشأ|انشاء|أضف|أنشئ|اجلب|ضع|سجل|في|من|بروتين|الخاص|ب|و|sur|depuis|from|to|protine|proteins?)\b/gi;
+        const _q = userMessage.replace(_sw, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'protein';
+        log.info('agent', `[catch-all] UniProt+Create: query="${_q}"`);
+        try {
+          const _uR = await new Promise((resolve, reject) => {
+            const _uu = new URL(`https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(_q)}&format=json&size=1&fields=accession,protein_name,gene_names,organism_name,sequence,reviewed`);
+            require('https').get(
+              { hostname: _uu.hostname, path: _uu.pathname + _uu.search, headers: { Accept: 'application/json', 'User-Agent': 'EpitopX AI/1.0' } },
+              (r2) => { let d = ''; r2.on('data', c => { d += c; }); r2.on('end', () => resolve({ status: r2.statusCode, body: d })); }
+            ).on('error', reject).setTimeout(15000, function() { this.destroy(); });
+          });
+          if (_uR.status === 200) {
+            const _e0 = (JSON.parse(_uR.body).results || [])[0];
+            if (_e0) {
+              const _acc  = _e0.primaryAccession || '';
+              const _pn   = _e0.proteinDescription?.recommendedName?.fullName?.value || _e0.proteinDescription?.submissionNames?.[0]?.fullName?.value || _acc;
+              const _org  = _e0.organism?.scientificName || '';
+              const _gene = _e0.genes?.[0]?.geneName?.value || '';
+              const _seq  = _e0.sequence?.value || '';
+              if (_seq && _seq.length >= 5) {
+                const _nm = (_gene || _pn).replace(/[^A-Za-z0-9_\-\s]/g, '').trim().slice(0, 50) || _acc;
+                let _cr = await djangoPost('/api/proteins/', { name: _nm, fullname: _pn, sequence: _seq, organism: _org, description: `Imported from UniProt ${_acc} by EpitopX AI Agent.`, is_public: false });
+                // If name conflict, retry with accession as name
+                if (_cr.status === 400) {
+                  _cr = await djangoPost('/api/proteins/', { name: _acc, fullname: _pn, sequence: _seq, organism: _org, description: `Imported from UniProt ${_acc} by EpitopX AI Agent.`, is_public: false });
+                }
+                if (_cr.status === 201) {
+                  const _cd = JSON.parse(_cr.body);
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ analysis:
+                    `## ✅ Protéine importée depuis UniProt !\n\n`
+                    + `| Champ | Valeur |\n|---|---|\n`
+                    + `| **ID EpitopX** | ${_cd.id} |\n`
+                    + `| **Nom** | ${_cd.name} |\n`
+                    + `| **Nom complet** | ${_pn} |\n`
+                    + `| **Accession** | [${_acc}](https://www.uniprot.org/uniprotkb/${_acc}) |\n`
+                    + `| **Organisme** | ${_org} |\n`
+                    + `| **Longueur** | ${_seq.length} aa |\n\n`
+                    + `→ [Voir dans Mes Protéines](my-proteins.html)`
+                  }));
+                  return;
+                }
+                // Creation failed — show real error instead of letting LLM hallucinate
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ analysis: `⚠️ Erreur lors de la création (${_cr.status}):\n\`\`\`\n${_cr.body.slice(0, 300)}\n\`\`\`` }));
+                return;
+              }
+            }
+          }
+        } catch (_e2) {
+          log.warn('agent', `[catch-all] UniProt+Create error: ${_e2.message}`);
+          // Don't return — let it fall through to LLM for a graceful error message
+        }
+      }
+
       const systemPrompt = `You are EpitopX AI, an expert bioinformatics assistant integrated into the EpitopX platform.
 You have FULL access to the user's local EpitopX database (proteins, epitopes, sequences stored on this server).
 You help researchers with questions about proteins, epitopes, DNA/RNA sequences, structural biology, immunology, and bioinformatics tools.
 
-IMPORTANT INSTRUCTIONS:
-- Respond in the SAME LANGUAGE as the user's message (French if French, English if English, etc.)
+CRITICAL RULES — NEVER VIOLATE:
+- You CANNOT create, save, import, add, or delete proteins. Only the server-side engine can do that.
+- NEVER say "I created the protein", "Protein saved", "Done", "Added successfully", or any variation implying you performed a database write.
+- If the user asks you to create/import/save a protein from UniProt or with a sequence, respond ONLY with: "To import a protein, please use the command: **search UniProt for [name] and add it to my proteins** — the server will handle it directly."
+- You CANNOT make HTTP requests to external APIs. Do NOT pretend to fetch sequences from UniProt, NCBI, or any other source.
+- Only report information that is explicitly given to you in the system context below. Do NOT invent protein IDs, sequences, or creation results.
+
+OTHER INSTRUCTIONS:
+- Respond in the SAME LANGUAGE as the user's message (French if French, English if English, Arabic if Arabic, etc.)
 - When asked about proteins "in the dashboard" or "in my database", refer to the protein list provided below.
 - When given a protein name or accession, provide a structured analysis: function, key domains, epitope regions, associated organisms/diseases, clinical significance.
 - When given a FASTA sequence, identify the type, notable motifs, and suggest relevant analyses.
-- For epitope questions: distinguish B-cell epitopes (linear + conformational), T-cell epitopes (MHC-I 8-10aa, MHC-II 13-25aa). When both EpitopX and IEDB BepiPred-2.0 results are provided, cross-reference them: epitopes confirmed by BOTH tools are the most reliable candidates. Epitopes found in the IEDB database (experimentally validated) rank highest.
-- For bioinformatics tools: you have already RUN the following tools automatically when data was available: EpitopX epitope prediction (core method), IEDB BepiPred-2.0, IEDB DB search, MSA alignment, NW protein comparison, NCBI search. Present those results directly.
+- For epitope questions: distinguish B-cell epitopes (linear + conformational), T-cell epitopes (MHC-I 8-10aa, MHC-II 13-25aa). When both EpitopX and IEDB BepiPred-2.0 results are provided, cross-reference them.
 - Cite relevant databases (UniProt, IEDB, PDB, NCBI, AlphaFold) when appropriate.
 - Format responses with markdown: use **bold**, ## headers, bullet lists, tables, and code blocks.
 - Keep answers under 800 words and well-structured. Be precise and scientifically accurate.${dbContext}${epitopeResultContext}${memoryContext ? '\n\n' + memoryContext : ''}`;
+
 
       const messages = [
         { role: 'system', content: systemPrompt },
