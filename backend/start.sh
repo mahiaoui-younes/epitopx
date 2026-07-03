@@ -4,11 +4,6 @@ set -e
 echo "==> Running database migrations..."
 python manage.py migrate --noinput
 
-echo "==> Ensuring admin user from environment..."
-# Attempt to create/update admin from repository helper script (reads DJANGO_ADMIN_* env vars)
-if [ -f ../scripts/create_admin_from_env.py ]; then
-  python ../scripts/create_admin_from_env.py || echo "Admin creation script failed, falling back to createsuperuser"
-fi
 echo "==> Creating superuser (if not exists)..."
 python manage.py createsuperuser --noinput 2>/dev/null || echo "Superuser already exists or skipped."
 

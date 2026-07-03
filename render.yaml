@@ -4,18 +4,14 @@
 # Services:
 #   1. epitopx-backend  — Django REST API  (Python)
 #   2. epitopx-frontend — Node.js frontend (Node)
-#   3. epitopx-db       — PostgreSQL database (managed by Render)
+#
+# Database: Neon PostgreSQL (external — https://neon.tech)
+#   The DATABASE_URL env var below points to the Neon connection string.
 #
 # After first deploy:
 #   • Copy the epitopx-backend URL (e.g. https://epitopx-backend.onrender.com)
 #     and set it as REMOTE_API / EPITOPE_API / ALIGNMENT_API on epitopx-frontend.
 #   • Copy the epitopx-frontend URL and set it as FRONTEND_URL on epitopx-backend.
-
-databases:
-  - name: epitopx-db
-    databaseName: backend_db
-    user: epitopx
-    plan: free
 
 services:
 
@@ -39,9 +35,7 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: DATABASE_URL
-        fromDatabase:
-          name: epitopx-db
-          property: connectionString
+        value: postgresql://neondb_owner:npg_0bOIzJeTCc9s@ep-mute-rain-atyvomq9-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       # ⚠️  After the frontend is deployed, set this to your frontend URL:
       - key: FRONTEND_URL
         value: https://epitopx-frontend.onrender.com
