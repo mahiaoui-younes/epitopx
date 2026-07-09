@@ -155,7 +155,7 @@
     document.getElementById('cp-alphafold-status').innerHTML = '';
     alphafoldPDBBlob = null;
     switchStructureTab('pdb');
-    ['cp-name','cp-fullname','cp-organism','cp-sequence','cp-description'].forEach(id => {
+    ['cp-name', 'cp-fullname', 'cp-organism', 'cp-sequence', 'cp-description'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -176,11 +176,54 @@
       : 'px-3 py-1 text-xs rounded-full border transition-all bg-white border-gray-200 text-gray-500';
   };
 
+  // ── Helper: extract protein (amino-acid) sequence from multi-FASTA input ──────
+  // The user may paste both a DNA FASTA and a protein FASTA in the same field.
+  // This function parses every FASTA block and returns ONLY the first amino-acid
+  // sequence found (identified by having >10% non-ATCGUN characters).
+  // If the input has no FASTA headers, the whole string is returned as-is.
+  function parseFastaProteinSequence(rawInput) {
+    const lines = rawInput.trim().split('\n');
+
+    // If no FASTA headers at all, return the whole thing cleaned
+    if (!lines.some(l => l.trimStart().startsWith('>'))) {
+      return rawInput.replace(/\s+/g, '').toUpperCase();
+    }
+
+    // Parse into blocks: { header, seq }
+    const blocks = [];
+    let cur = null;
+    for (const line of lines) {
+      if (line.trimStart().startsWith('>')) {
+        if (cur) blocks.push(cur);
+        cur = { header: line.trim(), seq: '' };
+      } else if (cur) {
+        cur.seq += line.replace(/\s+/g, '');
+      }
+    }
+    if (cur) blocks.push(cur);
+
+    if (blocks.length === 0) return '';
+
+    // Detect protein: if >10% of chars are not typical DNA/RNA bases → amino acids
+    function isProtein(seq) {
+      if (!seq || seq.length < 5) return false;
+      const s = seq.toUpperCase();
+      const dnaSet = new Set('ATCGNU');
+      const nonDna = s.split('').filter(c => !dnaSet.has(c)).length;
+      return (nonDna / s.length) > 0.10;
+    }
+
+    // Return the first protein block, or the last block if all look like DNA
+    const proteinBlock = blocks.find(b => isProtein(b.seq));
+    const chosen = proteinBlock || blocks[blocks.length - 1];
+    return chosen.seq.toUpperCase();
+  }
+
   // --- Structure search: AlphaFold (known proteins) + ESMFold (custom sequences) ---
   window.searchAlphaFold = async function () {
-    // Strip FASTA header lines before processing
-    const rawSeq = document.getElementById('cp-sequence').value.trim();
-    const sequence = rawSeq.split('\n').filter(l => !l.trimStart().startsWith('>')).join('').replace(/\s+/g, '').toUpperCase();
+    // Extract protein sequence from potentially mixed DNA+protein FASTA input
+    const rawInput = document.getElementById('cp-sequence').value.trim();
+    const sequence = parseFastaProteinSequence(rawInput);
     const name     = document.getElementById('cp-name').value.trim();
     const fullname = document.getElementById('cp-fullname').value.trim();
     const organism = document.getElementById('cp-organism').value.trim();
@@ -198,18 +241,18 @@
 
     function setStatus(html) { statusEl.innerHTML = html; }
 
-    // ── Helper: fold sequence with ESMFold (Meta AI) ─────────────────────────
-    // ESMFold accepts a raw amino-acid sequence and returns a PDB file directly,
-    // so the structure corresponds exactly to THIS sequence — no UniProt needed.
+    // ── Helper: fold sequence directly with ESMFold (Meta AI) ────────────────
+    // ESMFold folds ANY amino-acid sequence and returns a PDB — no UniProt needed.
+    // This guarantees the structure matches YOUR exact sequence.
     async function foldWithESMFold(seq) {
-      setStatus('<span class="text-purple-600">🧬 Séquence non trouvée dans UniProt — génération de la structure 3D via ESMFold (Meta AI)...</span>');
+      setStatus('<span class="text-purple-600">🧬 Génération de la structure 3D via ESMFold (Meta AI) pour votre séquence...</span>');
       const esmRes = await fetch('https://api.esmatlas.com/foldSequence/v1/pdb/', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: seq,
       });
       if (!esmRes.ok) {
-        throw new Error(`ESMFold a retourné une erreur (${esmRes.status}). Vérifiez que la séquence est valide (acides aminés standard uniquement) ou uploadez le PDB manuellement.`);
+        throw new Error(`ESMFold: erreur ${esmRes.status}. Vérifiez que la séquence ne contient que des acides aminés standard, ou uploadez le PDB manuellement.`);
       }
       const pdbText = await esmRes.text();
       if (!pdbText || !pdbText.includes('ATOM')) {
@@ -221,33 +264,29 @@
     try {
       let accession = null;
 
-      // ── Step 1: If a sequence is given, try to find an EXACT UniProt match ──
-      // This uses a CRC64 checksum — only matches if it's the IDENTICAL sequence.
-      // We never fall back to name search when a sequence is provided,
-      // because that would return a DIFFERENT protein's structure.
+      // ── Step 1: If a sequence is given, try EXACT UniProt match (CRC64) ──
+      // We NEVER fall back to name search when a sequence is provided —
+      // that would return a completely different protein's structure.
       if (sequence) {
         try {
-          setStatus('<span class="text-blue-500">Recherche de la séquence dans UniProt (correspondance exacte)...</span>');
+          setStatus('<span class="text-blue-500">Recherche de correspondance exacte dans UniProt...</span>');
           const seqRes = await fetch('/api/bio/sequence-to-uniprot/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              ...( (()=>{ const t=localStorage.getItem('access_token')||localStorage.getItem('token'); return t?{'Authorization':'Bearer '+t}:{}; })() )
+              ...((() => { const t = localStorage.getItem('access_token') || localStorage.getItem('token'); return t ? { 'Authorization': 'Bearer ' + t } : {}; })())
             },
             body: JSON.stringify({ sequence }),
           });
           if (seqRes.ok) {
             const seqData = await seqRes.json();
-            if (seqData.accession) {
-              accession = seqData.accession;
-              setStatus(`<span class="text-blue-500">Séquence identifiée dans UniProt: <strong>${accession}</strong> — Recherche de la structure AlphaFold...</span>`);
-            }
+            if (seqData.accession) accession = seqData.accession;
           }
-        } catch (_) { /* network error — will try ESMFold below */ }
+        } catch (_) { /* network error — will try ESMFold */ }
 
         if (accession) {
-          // ── Step 2a: Sequence found in UniProt → use AlphaFold structure ──
-          setStatus(`<span class="text-blue-500">UniProt: <strong>${accession}</strong> — Recherche sur AlphaFold...</span>`);
+          // ── Step 2a: Exact UniProt match → try AlphaFold ──
+          setStatus(`<span class="text-blue-500">Séquence identifiée: <strong>${accession}</strong> — Recherche structure AlphaFold...</span>`);
           const afRes = await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
           if (afRes.ok) {
             const afData = await afRes.json();
@@ -263,17 +302,15 @@
                 document.getElementById('cp-pdb-filename').textContent = filename + ' (AlphaFold ✓)';
                 switchStructureTab('pdb');
                 setStatus(`<span class="text-green-600">&#x2713; Structure AlphaFold chargée — <strong>${accession}</strong> (${filename})</span>`);
-                return; // done ✓
+                return;
               }
             }
           }
-          // AlphaFold has no structure for this accession → fall through to ESMFold
           setStatus(`<span class="text-blue-500">Pas de structure AlphaFold pour <strong>${accession}</strong> — génération via ESMFold...</span>`);
         }
 
-        // ── Step 2b: Sequence NOT in UniProt (or AlphaFold has no structure) →
-        //            Fold the sequence directly with ESMFold.
-        //            This gives a PDB for YOUR exact sequence, not a different protein.
+        // ── Step 2b: Not in UniProt (or no AlphaFold entry) → fold with ESMFold.
+        //            ESMFold uses YOUR EXACT sequence — no wrong protein risk.
         const pdbText = await foldWithESMFold(sequence);
         const safeName = (name || 'protein').replace(/[^a-zA-Z0-9_-]/g, '_');
         const filename = `${safeName}_esmfold.pdb`;
@@ -281,22 +318,18 @@
         alphafoldPDBBlob._name = filename;
         document.getElementById('cp-pdb-filename').textContent = filename + ' (ESMFold ✓)';
         switchStructureTab('pdb');
-        setStatus(`<span class="text-green-600">&#x2713; Structure 3D générée par ESMFold (Meta AI) pour votre séquence — <em>${filename}</em></span>`);
-        return; // done ✓
+        setStatus(`<span class="text-green-600">&#x2713; Structure 3D générée par ESMFold pour votre séquence — <em>${filename}</em></span>`);
+        return;
       }
 
-      // ── No sequence provided → name-only search (last resort) ────────────────
-      // NOTE: This path is reached only when the user did NOT enter a sequence.
-      //       It may return a structure for a different protein variant, so we
-      //       warn the user explicitly.
+      // ── No sequence provided → name-only search (with clear warning) ────────
       const nameQuery = fullname || name;
       if (!nameQuery) {
-        setStatus('<span class="text-amber-600">&#x26A0; Veuillez entrer une séquence ou un nom de protéine.</span>');
+        setStatus('<span class="text-amber-600">&#x26A0; Veuillez entrer votre séquence en acides aminés ou un nom de protéine.</span>');
         return;
       }
       setStatus('<span class="text-blue-500">Aucune séquence fournie — recherche par nom (résultat approximatif)...</span>');
 
-      // Check for NCBI/GenBank accession pattern
       const ncbiAccMatch = nameQuery.match(/^([A-Z]{2,3}\d{5,8})(\.d+)?$/i);
       if (ncbiAccMatch) {
         const baseAcc = ncbiAccMatch[1].toUpperCase();
@@ -305,53 +338,40 @@
           const xrefRes = await fetch(`/api/uniprot/uniprotkb/search?query=${xrefQ}&format=json&fields=accession&size=1`);
           if (xrefRes.ok) {
             const xrefData = await xrefRes.json();
-            if (xrefData.results && xrefData.results.length > 0) {
-              accession = xrefData.results[0].primaryAccession;
-            }
+            if (xrefData.results && xrefData.results.length > 0) accession = xrefData.results[0].primaryAccession;
           }
-        } catch (_) { /* fall through */ }
+        } catch (_) {}
       }
 
       if (!accession) {
         const uniprotQ = encodeURIComponent([nameQuery, organism].filter(Boolean).join(' '));
-        const uniprotRes = await fetch(
-          `/api/uniprot/uniprotkb/search?query=${uniprotQ}&format=json&fields=accession,id,protein_name&size=1`
-        );
+        const uniprotRes = await fetch(`/api/uniprot/uniprotkb/search?query=${uniprotQ}&format=json&fields=accession,id,protein_name&size=1`);
         if (!uniprotRes.ok) throw new Error('UniProt inaccessible');
         const uniprotData = await uniprotRes.json();
         if (!uniprotData.results || uniprotData.results.length === 0) {
-          setStatus('<span class="text-amber-600">&#x26A0; Protéine non trouvée sur UniProt &mdash; veuillez entrer votre séquence ou uploader le fichier PDB.</span>');
+          setStatus('<span class="text-amber-600">&#x26A0; Protéine non trouvée sur UniProt — entrez votre séquence en acides aminés ou uploadez le PDB.</span>');
           return;
         }
         accession = uniprotData.results[0].primaryAccession;
       }
 
-      setStatus(`<span class="text-amber-500">&#x26A0; Recherche par nom: UniProt <strong>${accession}</strong> — Attention: ce résultat peut ne pas correspondre à votre protéine. Fournissez la séquence pour une correspondance exacte.</span>`);
-
+      setStatus(`<span class="text-amber-500">&#x26A0; Recherche par nom: UniProt <strong>${accession}</strong> — ce résultat peut ne pas correspondre à votre protéine. Entrez la séquence pour une correspondance exacte.</span>`);
       const afRes = await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
-      if (!afRes.ok) {
-        setStatus(`<span class="text-amber-600">&#x26A0; Aucune structure AlphaFold pour <strong>${accession}</strong> &mdash; veuillez entrer votre séquence ou uploader le fichier PDB.</span>`);
-        return;
-      }
+      if (!afRes.ok) { setStatus(`<span class="text-amber-600">&#x26A0; Pas de structure AlphaFold pour <strong>${accession}</strong>.</span>`); return; }
       const afData = await afRes.json();
-      if (!afData || !afData.length || !afData[0].pdbUrl) {
-        setStatus('<span class="text-amber-600">&#x26A0; Pas de PDB disponible sur AlphaFold &mdash; veuillez entrer votre séquence ou uploader le fichier PDB.</span>');
-        return;
-      }
+      if (!afData || !afData.length || !afData[0].pdbUrl) { setStatus('<span class="text-amber-600">&#x26A0; Pas de PDB AlphaFold disponible.</span>'); return; }
 
       const pdbUrl  = afData[0].pdbUrl;
       const filename = pdbUrl.split('/').pop();
       setStatus('<span class="text-blue-500">Téléchargement du PDB depuis AlphaFold...</span>');
-
       const pdbRes = await fetch(pdbUrl);
       if (!pdbRes.ok) throw new Error('Impossible de télécharger le PDB');
       const pdbText = await pdbRes.text();
       alphafoldPDBBlob = new Blob([pdbText], { type: 'text/plain' });
       alphafoldPDBBlob._name = filename;
-
       document.getElementById('cp-pdb-filename').textContent = filename + ' (AlphaFold / nom)';
       switchStructureTab('pdb');
-      setStatus(`<span class="text-green-600">&#x2713; Structure AlphaFold chargée &mdash; <strong>${accession}</strong> (${filename}). ⚠ Basé sur le nom — peut ne pas correspondre exactement à votre protéine.</span>`);
+      setStatus(`<span class="text-green-600">&#x2713; Structure AlphaFold — <strong>${accession}</strong> (${filename}). ⚠ Basé sur le nom uniquement.</span>`);
     } catch (err) {
       setStatus(`<span class="text-red-500">Erreur: ${err.message}</span>`);
     } finally {
@@ -371,9 +391,9 @@
     const name     = document.getElementById('cp-name').value.trim();
     const fullname = document.getElementById('cp-fullname').value.trim();
     const organism = document.getElementById('cp-organism').value.trim();
-    // Strip FASTA header lines (starting with '>') before sending
-    const rawSeq = document.getElementById('cp-sequence').value.trim();
-    const sequence = rawSeq.split('\n').filter(l => !l.trimStart().startsWith('>')).join('').replace(/\s+/g, '').toUpperCase();
+    // Extract protein sequence from multi-FASTA input (strips DNA sequences)
+    const rawSeq   = document.getElementById('cp-sequence').value.trim();
+    const sequence = parseFastaProteinSequence(rawSeq);
     const description = document.getElementById('cp-description').value.trim();
     const pdbFile  = document.getElementById('cp-pdb-file').files[0] || alphafoldPDBBlob || null;
     const cifFile  = document.getElementById('cp-cif-file').files[0] || null;
@@ -392,7 +412,6 @@
       if (result.success) {
         Utils.showToast(`Protéine "${name}" créée avec succès`, 'success');
         closeCreateProteinModal();
-        // Refresh protein selector and load the new protein
         await populateProteinSelect();
         if (result.data && result.data.id) {
           const sel = document.getElementById('protein-select');
@@ -447,7 +466,7 @@
       // perfMode 1 — mid: no antialias, medium quality
       { antialias: false, cartoonQuality: 6 },
       // perfMode 2 — high: antialias on, full quality
-      { antialias: true,  cartoonQuality: 10 },
+      { antialias: true, cartoonQuality: 10 },
     ];
     const q = qualityMap[perfMode];
 
@@ -489,7 +508,7 @@
     if (!id) return;
 
     // Remember which protein was selected
-    try { sessionStorage.setItem('viewer3d_lastProteinId', id); } catch(e) {}
+    try { sessionStorage.setItem('viewer3d_lastProteinId', id); } catch (e) { }
 
     const wrapper = document.getElementById('viewer-wrapper');
     Utils.showLoading(document.getElementById('viewer-empty'), 'Génération de la structure 3D...');
@@ -576,9 +595,9 @@
   };
 
   const AA3TO1 = {
-    'ALA':'A','ARG':'R','ASN':'N','ASP':'D','CYS':'C','GLU':'E','GLN':'Q',
-    'GLY':'G','HIS':'H','ILE':'I','LEU':'L','LYS':'K','MET':'M','PHE':'F',
-    'PRO':'P','SER':'S','THR':'T','TRP':'W','TYR':'Y','VAL':'V'
+    'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D', 'CYS': 'C', 'GLU': 'E', 'GLN': 'Q',
+    'GLY': 'G', 'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K', 'MET': 'M', 'PHE': 'F',
+    'PRO': 'P', 'SER': 'S', 'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'
   };
 
   // --- Extract sequence from PDB ---
@@ -622,17 +641,17 @@
         const tag = trimmed.toLowerCase();
         const idx = headers.length;
         headers.push(tag);
-        if (tag === '_atom_site.group_pdb')       colGroup   = idx;
-        if (tag === '_atom_site.label_atom_id')   colAtomId  = idx;
-        if (tag === '_atom_site.label_comp_id')   colCompId  = idx;
-        if (tag === '_atom_site.label_seq_id')    colSeqId   = idx;
+        if (tag === '_atom_site.group_pdb') colGroup = idx;
+        if (tag === '_atom_site.label_atom_id') colAtomId = idx;
+        if (tag === '_atom_site.label_comp_id') colCompId = idx;
+        if (tag === '_atom_site.label_seq_id') colSeqId = idx;
         inAtomLoop = true;
         continue;
       }
 
       if (inAtomLoop && colGroup >= 0 && colAtomId >= 0 && colCompId >= 0 && colSeqId >= 0) {
         if (trimmed.startsWith('_') || trimmed.startsWith('loop_') ||
-            trimmed.startsWith('data_') || trimmed.startsWith('#') || trimmed === '') {
+          trimmed.startsWith('data_') || trimmed.startsWith('#') || trimmed === '') {
           if (trimmed.startsWith('loop_') || trimmed.startsWith('data_')) inAtomLoop = false;
           continue;
         }
@@ -640,7 +659,7 @@
         if (cols.length > Math.max(colGroup, colAtomId, colCompId, colSeqId)) {
           if (cols[colGroup] === 'ATOM' && cols[colAtomId] === 'CA') {
             const compId = cols[colCompId].toUpperCase();
-            const seqId  = cols[colSeqId];
+            const seqId = cols[colSeqId];
             const key = compId + seqId;
             if (!seen.has(key)) {
               seen.add(key);
@@ -680,28 +699,28 @@
 
     // Add click handler for atom selection
     const AA_NAMES = {
-      ALA: 'Alanine',       ARG: 'Arginine',      ASN: 'Asparagine',
-      ASP: 'Aspartate',     CYS: 'Cystéine',      GLN: 'Glutamine',
-      GLU: 'Glutamate',     GLY: 'Glycine',        HIS: 'Histidine',
-      ILE: 'Isoleucine',    LEU: 'Leucine',        LYS: 'Lysine',
-      MET: 'Méthionine',    PHE: 'Phénylalanine',  PRO: 'Proline',
-      SER: 'Sérine',        THR: 'Thréonine',      TRP: 'Tryptophane',
-      TYR: 'Tyrosine',      VAL: 'Valine',
+      ALA: 'Alanine', ARG: 'Arginine', ASN: 'Asparagine',
+      ASP: 'Aspartate', CYS: 'Cystéine', GLN: 'Glutamine',
+      GLU: 'Glutamate', GLY: 'Glycine', HIS: 'Histidine',
+      ILE: 'Isoleucine', LEU: 'Leucine', LYS: 'Lysine',
+      MET: 'Méthionine', PHE: 'Phénylalanine', PRO: 'Proline',
+      SER: 'Sérine', THR: 'Thréonine', TRP: 'Tryptophane',
+      TYR: 'Tyrosine', VAL: 'Valine',
       // Modified / non-standard
       MSE: 'Sélénométhionine', HYP: 'Hydroxyproline', CSE: 'Sélénocystéine',
-      PYL: 'Pyrrolysine',   SEC: 'Sélénocystéine',
+      PYL: 'Pyrrolysine', SEC: 'Sélénocystéine',
     };
     const AA_1LETTER = {
-      ALA:'A', ARG:'R', ASN:'N', ASP:'D', CYS:'C', GLN:'Q', GLU:'E',
-      GLY:'G', HIS:'H', ILE:'I', LEU:'L', LYS:'K', MET:'M', PHE:'F',
-      PRO:'P', SER:'S', THR:'T', TRP:'W', TYR:'Y', VAL:'V',
+      ALA: 'A', ARG: 'R', ASN: 'N', ASP: 'D', CYS: 'C', GLN: 'Q', GLU: 'E',
+      GLY: 'G', HIS: 'H', ILE: 'I', LEU: 'L', LYS: 'K', MET: 'M', PHE: 'F',
+      PRO: 'P', SER: 'S', THR: 'T', TRP: 'W', TYR: 'Y', VAL: 'V',
     };
 
-    viewer.setClickable({}, true, function(atom) {
+    viewer.setClickable({}, true, function (atom) {
       if (!atom) return;
-      const code3  = (atom.resn || '').toUpperCase();
+      const code3 = (atom.resn || '').toUpperCase();
       const fullName = AA_NAMES[code3] || code3;
-      const letter   = AA_1LETTER[code3] ? ` (${AA_1LETTER[code3]})` : '';
+      const letter = AA_1LETTER[code3] ? ` (${AA_1LETTER[code3]})` : '';
       const label = `${fullName}${letter} · Résidu ${atom.resi} · Atome ${atom.atom}`;
       viewer.removeAllLabels();
       viewer.addLabel(label, {
@@ -746,10 +765,10 @@
 
     const styleMap = {
       cartoon: { cartoon: cartoonStyle },
-      stick:   { stick:   { colorscheme: isSimpleColor ? colorSpec : colorSpec, radius: stickRadius } },
-      sphere:  { sphere:  { colorscheme: isSimpleColor ? colorSpec : colorSpec, scale: sphereScale } },
-      line:    { line:    { colorscheme: isSimpleColor ? colorSpec : colorSpec } },
-      cross:   { cross:   { colorscheme: isSimpleColor ? colorSpec : colorSpec, linewidth: 2 } },
+      stick: { stick: { colorscheme: isSimpleColor ? colorSpec : colorSpec, radius: stickRadius } },
+      sphere: { sphere: { colorscheme: isSimpleColor ? colorSpec : colorSpec, scale: sphereScale } },
+      line: { line: { colorscheme: isSimpleColor ? colorSpec : colorSpec } },
+      cross: { cross: { colorscheme: isSimpleColor ? colorSpec : colorSpec, linewidth: 2 } },
       surface: { cartoon: { ...cartoonStyle, opacity: 0.5 } }
     };
 
@@ -923,7 +942,7 @@
     try {
       const saved = sessionStorage.getItem('viewer3d_perfMode');
       if (saved !== null) perfMode = Number(saved);
-    } catch (_) {}
+    } catch (_) { }
   })();
 
   // Pause spin when tab is not visible (saves GPU on background tabs)
@@ -1009,7 +1028,7 @@
       // Fallback: add labels and small cylinders at CA positions
       matched.filter(a => a.atom === 'CA').forEach(atom => {
         const c3 = (atom.resn || '').toUpperCase();
-        const ltr = {ALA:'A',ARG:'R',ASN:'N',ASP:'D',CYS:'C',GLN:'Q',GLU:'E',GLY:'G',HIS:'H',ILE:'I',LEU:'L',LYS:'K',MET:'M',PHE:'F',PRO:'P',SER:'S',THR:'T',TRP:'W',TYR:'Y',VAL:'V'}[c3] || c3;
+        const ltr = { ALA: 'A', ARG: 'R', ASN: 'N', ASP: 'D', CYS: 'C', GLN: 'Q', GLU: 'E', GLY: 'G', HIS: 'H', ILE: 'I', LEU: 'L', LYS: 'K', MET: 'M', PHE: 'F', PRO: 'P', SER: 'S', THR: 'T', TRP: 'W', TYR: 'Y', VAL: 'V' }[c3] || c3;
         viewer.addLabel(`${ltr}${atom.resi}`, { position: atom, fontSize: 10, backgroundColor: 'rgba(255,68,68,0.9)', fontColor: 'white', padding: 4 });
       });
     }
@@ -1023,7 +1042,7 @@
     }
 
     viewer.render();
-    Utils.showToast(`Résidus ${start}${start===end? '': ('–' + end)} mis en évidence`, 'success', 2500);
+    Utils.showToast(`Résidus ${start}${start === end ? '' : ('–' + end)} mis en évidence`, 'success', 2500);
   };
 
   // --- Options ---
@@ -1068,13 +1087,13 @@
         for (let dbx = -1; dbx <= 1; dbx++) {
           for (let dby = -1; dby <= 1; dby++) {
             for (let dbz = -1; dbz <= 1; dbz++) {
-              const key = `${bx0+dbx},${by0+dby},${bz0+dbz}`;
+              const key = `${bx0 + dbx},${by0 + dby},${bz0 + dbz}`;
               const bucket = oBuckets.get(key);
               if (!bucket) continue;
               for (const o of bucket) {
                 if (n.resi === o.resi) continue;
                 const dx = n.x - o.x, dy = n.y - o.y, dz = n.z - o.z;
-                const d2 = dx*dx + dy*dy + dz*dz;
+                const d2 = dx * dx + dy * dy + dz * dz;
                 if (d2 >= MIN_DIST2 && d2 <= CUTOFF2) {
                   viewer.addCylinder({
                     start: { x: n.x, y: n.y, z: n.z },
@@ -1100,10 +1119,10 @@
     viewer.removeAllLabels();
     if (show) {
       const AA3TO1_LBL = {
-        ALA:'A', ARG:'R', ASN:'N', ASP:'D', CYS:'C', GLN:'Q', GLU:'E',
-        GLY:'G', HIS:'H', ILE:'I', LEU:'L', LYS:'K', MET:'M', PHE:'F',
-        PRO:'P', SER:'S', THR:'T', TRP:'W', TYR:'Y', VAL:'V',
-        MSE:'M', HYP:'P', PYL:'K', SEC:'C',
+        ALA: 'A', ARG: 'R', ASN: 'N', ASP: 'D', CYS: 'C', GLN: 'Q', GLU: 'E',
+        GLY: 'G', HIS: 'H', ILE: 'I', LEU: 'L', LYS: 'K', MET: 'M', PHE: 'F',
+        PRO: 'P', SER: 'S', THR: 'T', TRP: 'W', TYR: 'Y', VAL: 'V',
+        MSE: 'M', HYP: 'P', PYL: 'K', SEC: 'C',
       };
       const atoms = currentModel.selectedAtoms({ atom: 'CA' });
       // Adaptive density: low-end shows every 10th residue, mid every 5th, high every 2nd
@@ -1275,7 +1294,7 @@
           proteinId: currentProtein ? (currentProtein.id || currentProtein.name) : null,
           data: response.data
         }));
-      } catch(e) { /* quota exceeded — ignore */ }
+      } catch (e) { /* quota exceeded — ignore */ }
 
       Utils.showToast('Analyse des épitopes terminée — cliquez sur un épitope pour le visualiser en 3D', 'success');
     } catch (err) {
