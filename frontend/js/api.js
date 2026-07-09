@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EpitopX AI — API Hooks
  * Fetches proteins from the remote API via the local proxy (server.js).
  * DNA translation and similarity stay client-side.
@@ -304,74 +304,70 @@ var API = typeof API !== 'undefined' ? API : (() => {
   }
 
   // --- Fetch real 3D structure from AlphaFold via UniProt ---
+  // IMPORTANT: Only an exact CRC64 sequence match is used to find a UniProt accession.
+  // The name+organism text-search fallback has been intentionally removed because it
+  // returns arbitrary UniProt entries that share a name with the user's protein,
+  // causing a completely wrong AlphaFold structure to be displayed for custom proteins.
   async function fetchAlphaFoldStructure(proteinName, organism, sequence) {
-    let accessions = [];
+    let accession = null;
 
-    // 1. Try sequence-based lookup first (exact CRC64 match via backend proxy)
-    if (sequence && sequence.length >= 10) {
-      try {
-        const token = (typeof Auth !== 'undefined' && Auth.getAuthToken) ? Auth.getAuthToken() : sessionStorage.getItem('_authToken');
-        const seqRes = await fetch('/api/bio/sequence-to-uniprot/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
-          body: JSON.stringify({ sequence }),
-        });
-        if (seqRes.ok) {
-          const seqData = await seqRes.json();
-          if (seqData.accession) accessions.push(seqData.accession);
+    // Only proceed with exact sequence-based lookup (CRC64 checksum via backend proxy).
+    // If the protein sequence is not in UniProt (custom/novel protein), we return ''
+    // immediately so the caller falls back to the locally generated backbone model.
+    if (!sequence || sequence.length < 10) {
+      console.log(`[3D] Sequence too short for UniProt lookup — skipping AlphaFold search`);
+      return '';
+    }
+
+    try {
+      const token = (typeof Auth !== 'undefined' && Auth.getAuthToken) ? Auth.getAuthToken() : sessionStorage.getItem('_authToken');
+      const seqRes = await fetch('/api/bio/sequence-to-uniprot/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+        body: JSON.stringify({ sequence }),
+      });
+      if (seqRes.ok) {
+        const seqData = await seqRes.json();
+        if (seqData.accession) {
+          accession = seqData.accession;
+          console.log(`[3D] Exact UniProt match via CRC64: ${accession}`);
         }
-      } catch (_) { /* fall through to name search */ }
+      }
+    } catch (_) { /* network error — fall through */ }
+
+    // No exact UniProt match for this sequence → this is a custom/novel protein.
+    // Do NOT fall back to name search — it would return unrelated proteins.
+    if (!accession) {
+      console.log(`[3D] No exact UniProt match for sequence — skipping AlphaFold (custom protein)`);
+      return '';
     }
 
-    // 2. Fall back to name+organism search
-    if (!accessions.length) {
-      // Build a UniProt search query using the protein name (and organism if available)
-      const query = [proteinName, organism].filter(Boolean).join(' ');
-      // Route through local proxy for caching & throttling
-      const uniprotUrl =
-        `/api/uniprot/uniprotkb/search?query=${encodeURIComponent(query)}&fields=accession&format=json&size=5`;
+    // Fetch AlphaFold structure for the verified UniProt accession
+    try {
+      const metaRes = await fetch(
+        `https://alphafold.ebi.ac.uk/api/prediction/${accession}`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      if (!metaRes.ok) {
+        console.log(`[3D] No AlphaFold entry for ${accession}`);
+        return '';
+      }
+      const metaList = await metaRes.json();
+      const meta = Array.isArray(metaList) ? metaList[0] : metaList;
+      const pdbUrl = meta && (meta.pdbUrl || meta.cifUrl);
+      if (!pdbUrl) return '';
 
-      const uniprotRes = await fetch(uniprotUrl);
-      if (!uniprotRes.ok) return '';
-      const uniprotData = await uniprotRes.json();
-      const results = uniprotData.results || [];
-      if (!results.length) return '';
-      accessions = results.map(e => e.primaryAccession).filter(Boolean);
+      const afRes = await fetch(pdbUrl);
+      if (!afRes.ok) return '';
+      const pdbText = await afRes.text();
+      if (pdbText.length > 100 && pdbText.includes('ATOM')) {
+        console.log(`[3D] AlphaFold structure loaded for ${accession} (${pdbText.length} bytes)`);
+        return pdbText;
+      }
+    } catch (e) {
+      console.warn(`[3D] AlphaFold fetch error for ${accession}:`, e);
     }
 
-    const results = accessions.map(a => ({ primaryAccession: a }));
-    if (!results.length) return '';
-
-    // For each UniProt hit, ask the AlphaFold API for the actual model metadata
-    // then download whichever version exists — avoids blind version guessing
-    for (const entry of results) {
-      const uniprotId = entry.primaryAccession;
-      if (!uniprotId) continue;
-
-      try {
-        // AlphaFold REST API returns metadata including the real pdbUrl
-        const metaRes = await fetch(
-          `https://alphafold.ebi.ac.uk/api/prediction/${uniprotId}`,
-          { headers: { 'Accept': 'application/json' } }
-        );
-        if (!metaRes.ok) continue;
-        const metaList = await metaRes.json();
-        const meta = Array.isArray(metaList) ? metaList[0] : metaList;
-        const pdbUrl = meta && (meta.pdbUrl || meta.cifUrl);
-        if (!pdbUrl) continue;
-
-        const afRes = await fetch(pdbUrl);
-        if (!afRes.ok) continue;
-        const pdbText = await afRes.text();
-        if (pdbText.length > 100 && pdbText.includes('ATOM')) {
-          console.log(`[3D] AlphaFold structure loaded for ${uniprotId} (${pdbText.length} bytes)`);
-          return pdbText;
-        }
-      } catch (_) { /* try next accession */ }
-
-      // Small delay between AlphaFold lookups to be polite
-      await new Promise(r => setTimeout(r, 300));
-    }
     return '';
   }
 

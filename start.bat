@@ -11,7 +11,7 @@ REM       pip install -r backend\requirements.txt
 REM =====================================================
 
 REM ── Database connection ───────────────────────────────
-set DATABASE_URL=postgresql://epitopx:epitopx2024@localhost:5432/backend_db
+set DATABASE_URL=postgresql://epitopx:epitopx2024@localhost:5432/epitopx_db
 set DJANGO_DEBUG=True
 
 echo =====================================================
@@ -32,15 +32,6 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 echo       Migrations OK.
-echo.
-
-REM ── Ensure admin user from environment ───────────────────────────────
-echo [2/3] Ensuring admin user from environment...
-python ..\scripts\create_admin_from_env.py
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [WARNING] Admin creation script failed.
-)
 echo.
 
 REM ── 2. Start Django backend (waitress — handles concurrent users) ────────
