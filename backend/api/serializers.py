@@ -116,7 +116,7 @@ class ConversionResponseSerializer(serializers.Serializer):
 class ProteinSerializer(serializers.ModelSerializer):
     created_by_username = serializers.SerializerMethodField()
     epitope_count       = serializers.IntegerField(read_only=True)
-    pdb_file            = serializers.FileField(required=False, allow_null=True)
+    pdb_file            = serializers.SerializerMethodField()
 
     class Meta:
         model = Protein
@@ -132,6 +132,28 @@ class ProteinSerializer(serializers.ModelSerializer):
 
     def get_created_by_username(self, obj):
         return obj.created_by.username if obj.created_by_id else None
+
+    def get_pdb_file(self, obj):
+        """Return a stable /media/ relative URL for the PDB file.
+
+        DRF's FileField with request context returns an absolute URL, but
+        without context it returns just the storage path (e.g.
+        'proteins/pdb/file.pdb').  We normalise it to a /media/ path so the
+        frontend proxy can always fetch it via the same relative route.
+        """
+        if not obj.pdb_file:
+            return None
+        name = obj.pdb_file.name  # always the storage-relative path
+        if not name:
+            return None
+        # Build a consistent /media/ relative URL
+        if name.startswith('/media/'):
+            return name
+        if name.startswith('http'):
+            # Strip origin if an absolute URL slipped in
+            idx = name.find('/media/')
+            return name[idx:] if idx != -1 else name
+        return '/media/' + name
 
     def validate_name(self, value):
         return value.strip()

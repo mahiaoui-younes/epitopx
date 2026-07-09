@@ -103,6 +103,15 @@ var API = typeof API !== 'undefined' ? API : (() => {
     const seq = raw.sequence || '';
     // molecular_weight is no longer returned by the API — compute from sequence
     const weight = Math.round(seq.length * 110);
+
+    // pdb_file can come from the API as:
+    //   - a full URL: "https://host/media/proteins/pdb/file.pdb"
+    //   - a /media/ path: "/media/proteins/pdb/file.pdb"
+    //   - a bare relative path: "proteins/pdb/file.pdb"  ← Django FileField without request context
+    // We store whatever we get; resolveMediaUrl() will normalize it to a fetchable path.
+    const pdbRaw = raw.pdb_file || raw.pdb_url || raw.pdp_file || null;
+    const cifRaw = raw.cif_file || raw.cif_url || null;
+
     return {
       id: raw.id,
       name: raw.name || 'Protein',
@@ -111,8 +120,8 @@ var API = typeof API !== 'undefined' ? API : (() => {
       organism: raw.organism || 'Inconnu',
       molecular_weight: weight,
       description: raw.description || '',
-      pdb_url: raw.pdb_file || raw.pdp_file || null,
-      cif_url: raw.cif_file || null,
+      pdb_url: pdbRaw,
+      cif_url: cifRaw,
       epitope_id: raw.epitope_id || null,
       epitope_count: raw.epitope_count || 0,
       // kept with defaults so UI components that reference them don't break
@@ -209,16 +218,24 @@ var API = typeof API !== 'undefined' ? API : (() => {
       let structureSource = 'generated'; // 'server' | 'alphafold' | 'generated'
 
       // Helper to resolve /media/ paths through the local proxy.
-      // Handles absolute URLs (https://ngrok.../media/...), relative paths (/media/...),
-      // and bare paths that have no /media/ prefix.
+      // Handles all three formats Django can return for FileField:
+      //   1. Absolute URL:   "https://host/media/proteins/pdb/file.pdb"  → strip origin → "/media/..."
+      //   2. /media/ path:   "/media/proteins/pdb/file.pdb"              → use as-is
+      //   3. Bare rel. path: "proteins/pdb/file.pdb"                     → prepend "/media/"
+      // The resulting path is always relative, routed through server.js → REMOTE_API.
       function resolveMediaUrl(u) {
         if (!u) return '';
-        // If it's already a relative /media/ path, use as-is
+        // Already a relative /media/ path
         if (u.startsWith('/media/')) return u;
-        // Strip the origin from absolute URLs to route through the local proxy
+        // Absolute URL — strip origin, keep /media/...
         const idx = u.indexOf('/media/');
         if (idx !== -1) return u.substring(idx);
-        // Fallback: treat as-is (e.g. already a relative API path)
+        // Bare relative path returned by DRF FileField without request context
+        // e.g. "proteins/pdb/filename.pdb" → "/media/proteins/pdb/filename.pdb"
+        if (u && !u.startsWith('http') && !u.startsWith('/')) {
+          return '/media/' + u;
+        }
+        // Fallback: treat as-is
         return u;
       }
 
