@@ -130,43 +130,65 @@ function safePath(requestPath) {
 // -- Backend Health Check / Pre-warm Logic (Render Cold Start) -----------
 // -------------------------------------------------------------------------
 
-let lastBackendPingTime = 0;
+let lastBackendPingTime = 0;      // last time a wake loop was started
+let lastBackendOkTime   = 0;      // last time the backend answered with a non-5xx
+let wakeInFlight        = false;  // only one wake loop at a time
 
-function pingBackend(reason = 'periodic') {
-  lastBackendPingTime = Date.now();
-  try {
-    const _remoteHost = new URL(REMOTE_API);
-    const proto = REMOTE_API.startsWith('https') ? https : http;
-    const defaultPort = REMOTE_API.startsWith('https') ? 443 : 80;
-    const _checkReq = proto.request({
-      hostname: _remoteHost.hostname,
-      port: _remoteHost.port || defaultPort,
+const WAKE_ATTEMPT_TIMEOUT_MS = 90 * 1000;  // Render cold start can take 50-90s
+const WAKE_MAX_ATTEMPTS       = 6;
+const WAKE_RETRY_DELAY_MS     = 5000;
+
+// Single health request. Resolves true when the backend answered (status < 500).
+function healthRequest() {
+  return new Promise((resolve) => {
+    let remoteHost;
+    try { remoteHost = new URL(REMOTE_API); } catch (_) { return resolve(true); /* malformed URL — nothing to wake */ }
+    const isHttps = remoteHost.protocol === 'https:';
+    const proto = isHttps ? https : http;
+    const req = proto.request({
+      hostname: remoteHost.hostname,
+      port: remoteHost.port || (isHttps ? 443 : 80),
       path: '/api/health/',
       method: 'GET',
-      headers: { 'ngrok-skip-browser-warning': 'true' },
-      timeout: 30000,
-    }, (_res) => {
-      if (_res.statusCode >= 500) {
-        log.warn('health', `Remote API returned HTTP ${_res.statusCode} (${reason}) — backend may be starting`);
-      } else {
-        log.info('health', `Remote API reachable (HTTP ${_res.statusCode}) [${reason}]`);
-      }
-      _res.resume();
+      headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' },
+      timeout: WAKE_ATTEMPT_TIMEOUT_MS,
+    }, (r) => {
+      r.resume();
+      resolve(r.statusCode < 500 ? r.statusCode : false);
     });
-    _checkReq.on('timeout', () => {
-      _checkReq.destroy();
-      log.warn('health', `Remote API health-check timed out (${reason}) — backend cold-starting in background`);
-    });
-    _checkReq.on('error', (_err) => {
-      log.warn('health', `Remote API ping failed (${reason}): ${_err.message}`);
-    });
-    _checkReq.end();
-  } catch (_) { /* malformed REMOTE_API URL — skip check */ }
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.on('error', () => resolve(false));
+    req.end();
+  });
 }
 
-// Debounced ping: wakes backend at most once every 2 minutes when users browse pages
+// Wakes the backend and keeps retrying until it answers (or attempts run out).
+async function pingBackend(reason = 'periodic') {
+  if (wakeInFlight) return;
+  wakeInFlight = true;
+  lastBackendPingTime = Date.now();
+  try {
+    for (let attempt = 1; attempt <= WAKE_MAX_ATTEMPTS; attempt++) {
+      const status = await healthRequest();
+      if (status) {
+        lastBackendOkTime = Date.now();
+        log.info('health', `Remote API reachable (HTTP ${status}) [${reason}, attempt ${attempt}]`);
+        return;
+      }
+      log.warn('health', `Remote API not ready [${reason}, attempt ${attempt}/${WAKE_MAX_ATTEMPTS}] — backend cold-starting`);
+      await new Promise(r => setTimeout(r, WAKE_RETRY_DELAY_MS));
+    }
+    log.error('health', `Remote API still unreachable after ${WAKE_MAX_ATTEMPTS} attempts (${REMOTE_API}) — check REMOTE_API and the backend deploy logs`);
+  } finally {
+    wakeInFlight = false;
+  }
+}
+
+// Page-visit wake-up: ping if the backend hasn't been confirmed alive in the
+// last 10 minutes (and no more than once every 30s).
 function triggerBackendPing(reason = 'page_visit') {
-  if (Date.now() - lastBackendPingTime > 2 * 60 * 1000) {
+  const now = Date.now();
+  if (now - lastBackendOkTime > 10 * 60 * 1000 && now - lastBackendPingTime > 30 * 1000) {
     pingBackend(reason);
   }
 }
