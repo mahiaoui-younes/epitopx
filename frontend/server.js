@@ -148,7 +148,7 @@ function healthRequest() {
     const req = proto.request({
       hostname: remoteHost.hostname,
       port: remoteHost.port || (isHttps ? 443 : 80),
-      path: '/api/health/',
+      path: '/api/health/?db=1',
       method: 'GET',
       headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' },
       timeout: WAKE_ATTEMPT_TIMEOUT_MS,
@@ -1886,9 +1886,9 @@ server.listen(PORT, '0.0.0.0', () => {
   // Initial startup ping to wake/check backend
   pingBackend('startup');
 
-  // Keep-alive ping every 14 minutes to prevent Render free-tier cold-start
+  // Keep-alive ping every 10 minutes to prevent Render free-tier cold-start
   // (Render spins down after 15 minutes of inactivity)
-  setInterval(() => pingBackend('keepalive'), 14 * 60 * 1000);
+  setInterval(() => pingBackend('keepalive'), 10 * 60 * 1000);
 });
 
 // -- Graceful shutdown ----------------------------------------------------

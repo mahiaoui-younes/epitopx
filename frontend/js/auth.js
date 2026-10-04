@@ -80,7 +80,7 @@ var Auth = typeof Auth !== 'undefined' ? Auth : (() => {
       var lastPing = parseInt(sessionStorage.getItem('_last_be_ping') || '0', 10);
       if (Date.now() - lastPing < 2 * 60 * 1000) return;
       sessionStorage.setItem('_last_be_ping', String(Date.now()));
-      fetch('/api/health/', { method: 'GET', cache: 'no-store' }).catch(function() {});
+      fetch('/api/health/?db=1', { method: 'GET', cache: 'no-store' }).catch(function() {});
     } catch (_) {}
   }
 

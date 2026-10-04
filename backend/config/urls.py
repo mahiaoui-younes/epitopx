@@ -8,7 +8,17 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 def health_check(request):
-    return JsonResponse({'status': 'ok', 'service': 'epitopx-backend'})
+    """Liveness probe. Add ?db=1 to also wake the (Neon) database."""
+    payload = {'status': 'ok', 'service': 'epitopx-backend'}
+    if request.GET.get('db') == '1':
+        from django.db import connection
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT 1')
+            payload['db'] = 'ok'
+        except Exception:
+            payload['db'] = 'unavailable'
+    return JsonResponse(payload)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

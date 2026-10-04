@@ -1,0 +1,25 @@
+# Keeps the Render free-tier services (and the Neon DB) from going to sleep.
+# Render sleeps a service after 15 min WITHOUT INBOUND traffic. Hitting the
+# public frontend URL keeps the frontend awake, and the frontend proxies
+# /api/health/ to the backend (which also touches Neon with ?db=1).
+#
+# Setup: GitHub repo -> Settings -> Secrets and variables -> Actions -> Variables
+#        add  SITE_URL = https://epitopx-frontend.onrender.com
+name: Keep alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: ${{ vars.SITE_URL != '' }}
+    steps:
+      - name: Ping frontend + backend + database
+        run: |
+          curl -sS -o /dev/null -w "frontend: %{http_code} in %{time_total}s\n" \
+            --max-time 120 --retry 3 --retry-delay 10 "${{ vars.SITE_URL }}/"
+          curl -sS -o /dev/null -w "backend+db: %{http_code} in %{time_total}s\n" \
+            --max-time 120 --retry 3 --retry-delay 10 "${{ vars.SITE_URL }}/api/health/?db=1"
