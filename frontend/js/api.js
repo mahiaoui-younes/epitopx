@@ -665,6 +665,16 @@ var API = typeof API !== 'undefined' ? API : (() => {
     }
   }
 
+  // --- Health-check ping (used to wake up backend or verify status) ---
+  async function pingHealth() {
+    try {
+      const res = await fetch('/api/health/', { cache: 'no-store' });
+      return res.ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
   return {
     convertDNAToProtein,
     checkProteinInDB,
@@ -677,6 +687,8 @@ var API = typeof API !== 'undefined' ? API : (() => {
     analyzeEpitopes,
     createProtein,
     deleteProtein,
-    invalidateCache
+    invalidateCache,
+    pingHealth
   };
 })();
+

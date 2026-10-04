@@ -176,55 +176,10 @@
       : 'px-3 py-1 text-xs rounded-full border transition-all bg-white border-gray-200 text-gray-500';
   };
 
-  // ── Helper: extract protein (amino-acid) sequence from multi-FASTA input ──────
-  // The user may paste both a DNA FASTA and a protein FASTA in the same field.
-  // This function parses every FASTA block and returns ONLY the first amino-acid
-  // sequence found (identified by having >10% non-ATCGUN characters).
-  // If the input has no FASTA headers, the whole string is returned as-is.
-  function parseFastaProteinSequence(rawInput) {
-    const lines = rawInput.trim().split('\n');
-
-    // If no FASTA headers at all, return the whole thing cleaned
-    if (!lines.some(l => l.trimStart().startsWith('>'))) {
-      return rawInput.replace(/\s+/g, '').toUpperCase();
-    }
-
-    // Parse into blocks: { header, seq }
-    const blocks = [];
-    let cur = null;
-    for (const line of lines) {
-      if (line.trimStart().startsWith('>')) {
-        if (cur) blocks.push(cur);
-        cur = { header: line.trim(), seq: '' };
-      } else if (cur) {
-        cur.seq += line.replace(/\s+/g, '');
-      }
-    }
-    if (cur) blocks.push(cur);
-
-    if (blocks.length === 0) return '';
-
-    // Detect protein: if >10% of chars are not typical DNA/RNA bases → amino acids
-    function isProtein(seq) {
-      if (!seq || seq.length < 5) return false;
-      const s = seq.toUpperCase();
-      const dnaSet = new Set('ATCGNU');
-      const nonDna = s.split('').filter(c => !dnaSet.has(c)).length;
-      return (nonDna / s.length) > 0.10;
-    }
-
-    // Return the first protein block, or the last block if all look like DNA
-    const proteinBlock = blocks.find(b => isProtein(b.seq));
-    const chosen = proteinBlock || blocks[blocks.length - 1];
-    return chosen.seq.toUpperCase();
-  }
-
-  // --- Structure search: AlphaFold (known proteins) + ESMFold (custom sequences) ---
+  // --- AlphaFold PDB search ---
   window.searchAlphaFold = async function () {
-    // Extract protein sequence from potentially mixed DNA+protein FASTA input
-    const rawInput = document.getElementById('cp-sequence').value.trim();
-    const sequence = parseFastaProteinSequence(rawInput);
-    const name     = document.getElementById('cp-name').value.trim();
+    const sequence = document.getElementById('cp-sequence').value.trim().replace(/\s+/g, '');
+    const name = document.getElementById('cp-name').value.trim();
     const fullname = document.getElementById('cp-fullname').value.trim();
     const organism = document.getElementById('cp-organism').value.trim();
 
@@ -234,42 +189,23 @@
     }
 
     const statusEl = document.getElementById('cp-alphafold-status');
-    const btn      = document.getElementById('cp-alphafold-btn');
-    btn.disabled   = true;
+    const btn = document.getElementById('cp-alphafold-btn');
+    btn.disabled = true;
     alphafoldPDBBlob = null;
     document.getElementById('cp-pdb-filename').textContent = 'Aucun fichier';
 
     function setStatus(html) { statusEl.innerHTML = html; }
 
-    // ── Helper: fold sequence directly with ESMFold (Meta AI) ────────────────
-    // ESMFold folds ANY amino-acid sequence and returns a PDB — no UniProt needed.
-    // This guarantees the structure matches YOUR exact sequence.
-    async function foldWithESMFold(seq) {
-      setStatus('<span class="text-purple-600">🧬 Génération de la structure 3D via ESMFold (Meta AI) pour votre séquence...</span>');
-      const esmRes = await fetch('https://api.esmatlas.com/foldSequence/v1/pdb/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: seq,
-      });
-      if (!esmRes.ok) {
-        throw new Error(`ESMFold: erreur ${esmRes.status}. Vérifiez que la séquence ne contient que des acides aminés standard, ou uploadez le PDB manuellement.`);
-      }
-      const pdbText = await esmRes.text();
-      if (!pdbText || !pdbText.includes('ATOM')) {
-        throw new Error('ESMFold n\'a pas retourné une structure PDB valide. Uploadez le fichier PDB manuellement.');
-      }
-      return pdbText;
-    }
-
     try {
+      // 1. Search UniProt for accession
+      setStatus('<span class="text-blue-500">Recherche sur UniProt...</span>');
+
       let accession = null;
 
-      // ── Step 1: If a sequence is given, try EXACT UniProt match (CRC64) ──
-      // We NEVER fall back to name search when a sequence is provided —
-      // that would return a completely different protein's structure.
+      // --- Search by sequence via backend (server-side UniProt lookup, no CORS) ---
       if (sequence) {
         try {
-          setStatus('<span class="text-blue-500">Recherche de correspondance exacte dans UniProt...</span>');
+          setStatus('<span class="text-blue-500">Recherche UniProt par séquence...</span>');
           const seqRes = await fetch('/api/bio/sequence-to-uniprot/', {
             method: 'POST',
             headers: {
@@ -280,100 +216,83 @@
           });
           if (seqRes.ok) {
             const seqData = await seqRes.json();
-            if (seqData.accession) accession = seqData.accession;
-          }
-        } catch (_) { /* network error — will try ESMFold */ }
-
-        if (accession) {
-          // ── Step 2a: Exact UniProt match → try AlphaFold ──
-          setStatus(`<span class="text-blue-500">Séquence identifiée: <strong>${accession}</strong> — Recherche structure AlphaFold...</span>`);
-          const afRes = await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
-          if (afRes.ok) {
-            const afData = await afRes.json();
-            if (afData && afData.length && afData[0].pdbUrl) {
-              const pdbUrl   = afData[0].pdbUrl;
-              const filename = pdbUrl.split('/').pop();
-              setStatus('<span class="text-blue-500">Téléchargement de la structure depuis AlphaFold...</span>');
-              const pdbRes = await fetch(pdbUrl);
-              if (pdbRes.ok) {
-                const pdbText = await pdbRes.text();
-                alphafoldPDBBlob = new Blob([pdbText], { type: 'text/plain' });
-                alphafoldPDBBlob._name = filename;
-                document.getElementById('cp-pdb-filename').textContent = filename + ' (AlphaFold ✓)';
-                switchStructureTab('pdb');
-                setStatus(`<span class="text-green-600">&#x2713; Structure AlphaFold chargée — <strong>${accession}</strong> (${filename})</span>`);
-                return;
-              }
+            if (seqData.accession) {
+              accession = seqData.accession;
+              setStatus(`<span class="text-blue-500">Séquence identifiée: <strong>${accession}</strong> — Recherche AlphaFold...</span>`);
             }
           }
-          setStatus(`<span class="text-blue-500">Pas de structure AlphaFold pour <strong>${accession}</strong> — génération via ESMFold...</span>`);
-        }
-
-        // ── Step 2b: Not in UniProt (or no AlphaFold entry) → fold with ESMFold.
-        //            ESMFold uses YOUR EXACT sequence — no wrong protein risk.
-        const pdbText = await foldWithESMFold(sequence);
-        const safeName = (name || 'protein').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const filename = `${safeName}_esmfold.pdb`;
-        alphafoldPDBBlob = new Blob([pdbText], { type: 'text/plain' });
-        alphafoldPDBBlob._name = filename;
-        document.getElementById('cp-pdb-filename').textContent = filename + ' (ESMFold ✓)';
-        switchStructureTab('pdb');
-        setStatus(`<span class="text-green-600">&#x2713; Structure 3D générée par ESMFold pour votre séquence — <em>${filename}</em></span>`);
-        return;
+        } catch (_) { /* fall through to name search */ }
       }
 
-      // ── No sequence provided → name-only search (with clear warning) ────────
-      const nameQuery = fullname || name;
-      if (!nameQuery) {
-        setStatus('<span class="text-amber-600">&#x26A0; Veuillez entrer votre séquence en acides aminés ou un nom de protéine.</span>');
-        return;
-      }
-      setStatus('<span class="text-blue-500">Aucune séquence fournie — recherche par nom (résultat approximatif)...</span>');
-
-      const ncbiAccMatch = nameQuery.match(/^([A-Z]{2,3}\d{5,8})(\.d+)?$/i);
-      if (ncbiAccMatch) {
-        const baseAcc = ncbiAccMatch[1].toUpperCase();
-        const xrefQ = encodeURIComponent(`database:(type:embl accession:${baseAcc})`);
-        try {
-          const xrefRes = await fetch(`/api/uniprot/uniprotkb/search?query=${xrefQ}&format=json&fields=accession&size=1`);
-          if (xrefRes.ok) {
-            const xrefData = await xrefRes.json();
-            if (xrefData.results && xrefData.results.length > 0) accession = xrefData.results[0].primaryAccession;
-          }
-        } catch (_) {}
-      }
-
+      // --- Fall back to name + organism search if sequence search found nothing ---
       if (!accession) {
-        const uniprotQ = encodeURIComponent([nameQuery, organism].filter(Boolean).join(' '));
-        const uniprotRes = await fetch(`/api/uniprot/uniprotkb/search?query=${uniprotQ}&format=json&fields=accession,id,protein_name&size=1`);
-        if (!uniprotRes.ok) throw new Error('UniProt inaccessible');
-        const uniprotData = await uniprotRes.json();
-        if (!uniprotData.results || uniprotData.results.length === 0) {
-          setStatus('<span class="text-amber-600">&#x26A0; Protéine non trouvée sur UniProt — entrez votre séquence en acides aminés ou uploadez le PDB.</span>');
+        const nameQuery = fullname || name;
+        if (!nameQuery) {
+          setStatus('<span class="text-amber-600">&#x26A0; Séquence non reconnue sur UniProt &mdash; veuillez uploader le fichier PDB manuellement.</span>');
           return;
         }
-        accession = uniprotData.results[0].primaryAccession;
+        setStatus('<span class="text-blue-500">Séquence non trouvée — recherche par nom...</span>');
+
+        // Check for NCBI/GenBank accession pattern
+        const ncbiAccMatch = nameQuery.match(/^([A-Z]{2,3}\d{5,8})(\.\d+)?$/i);
+        if (ncbiAccMatch) {
+          const baseAcc = ncbiAccMatch[1].toUpperCase();
+          const xrefQ = encodeURIComponent(`database:(type:embl accession:${baseAcc})`);
+          try {
+            const xrefRes = await fetch(`/api/uniprot/uniprotkb/search?query=${xrefQ}&format=json&fields=accession&size=1`);
+            if (xrefRes.ok) {
+              const xrefData = await xrefRes.json();
+              if (xrefData.results && xrefData.results.length > 0) {
+                accession = xrefData.results[0].primaryAccession;
+              }
+            }
+          } catch (_) { /* fall through */ }
+        }
+
+        if (!accession) {
+          const uniprotQ = encodeURIComponent([nameQuery, organism].filter(Boolean).join(' '));
+          const uniprotRes = await fetch(
+            `/api/uniprot/uniprotkb/search?query=${uniprotQ}&format=json&fields=accession,id,protein_name&size=1`
+          );
+          if (!uniprotRes.ok) throw new Error('UniProt inaccessible');
+          const uniprotData = await uniprotRes.json();
+          if (!uniprotData.results || uniprotData.results.length === 0) {
+            setStatus('<span class="text-amber-600">&#x26A0; Protéine non trouvée sur UniProt &mdash; veuillez uploader le fichier PDB manuellement.</span>');
+            return;
+          }
+          accession = uniprotData.results[0].primaryAccession;
+        }
+      }
+      setStatus(`<span class="text-blue-500">UniProt: <strong>${accession}</strong> — Recherche sur AlphaFold...</span>`);
+
+      // 2. Query AlphaFold DB
+      const afRes = await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
+      if (!afRes.ok) {
+        setStatus(`<span class="text-amber-600">&#x26A0; Aucune structure AlphaFold pour <strong>${accession}</strong> &mdash; veuillez uploader le fichier PDB manuellement.</span>`);
+        return;
+      }
+      const afData = await afRes.json();
+      if (!afData || !afData.length || !afData[0].pdbUrl) {
+        setStatus('<span class="text-amber-600">&#x26A0; Pas de PDB disponible sur AlphaFold &mdash; veuillez uploader le fichier PDB manuellement.</span>');
+        return;
       }
 
-      setStatus(`<span class="text-amber-500">&#x26A0; Recherche par nom: UniProt <strong>${accession}</strong> — ce résultat peut ne pas correspondre à votre protéine. Entrez la séquence pour une correspondance exacte.</span>`);
-      const afRes = await fetch(`https://alphafold.ebi.ac.uk/api/prediction/${accession}`);
-      if (!afRes.ok) { setStatus(`<span class="text-amber-600">&#x26A0; Pas de structure AlphaFold pour <strong>${accession}</strong>.</span>`); return; }
-      const afData = await afRes.json();
-      if (!afData || !afData.length || !afData[0].pdbUrl) { setStatus('<span class="text-amber-600">&#x26A0; Pas de PDB AlphaFold disponible.</span>'); return; }
-
-      const pdbUrl  = afData[0].pdbUrl;
+      const pdbUrl = afData[0].pdbUrl;
       const filename = pdbUrl.split('/').pop();
       setStatus('<span class="text-blue-500">Téléchargement du PDB depuis AlphaFold...</span>');
+
+      // 3. Download PDB content
       const pdbRes = await fetch(pdbUrl);
       if (!pdbRes.ok) throw new Error('Impossible de télécharger le PDB');
       const pdbText = await pdbRes.text();
       alphafoldPDBBlob = new Blob([pdbText], { type: 'text/plain' });
-      alphafoldPDBBlob._name = filename;
-      document.getElementById('cp-pdb-filename').textContent = filename + ' (AlphaFold / nom)';
+      alphafoldPDBBlob._name = filename; // store for display
+
+      document.getElementById('cp-pdb-filename').textContent = filename + ' (AlphaFold ✓)';
       switchStructureTab('pdb');
-      setStatus(`<span class="text-green-600">&#x2713; Structure AlphaFold — <strong>${accession}</strong> (${filename}). ⚠ Basé sur le nom uniquement.</span>`);
+      setStatus(`<span class="text-green-600">&#x2713; Structure AlphaFold chargée &mdash; <strong>${accession}</strong> (${filename})</span>`);
     } catch (err) {
-      setStatus(`<span class="text-red-500">Erreur: ${err.message}</span>`);
+      setStatus(`<span class="text-red-500">Erreur: ${err.message} &mdash; veuillez uploader le fichier PDB manuellement.</span>`);
     } finally {
       btn.disabled = false;
     }
@@ -388,15 +307,15 @@
 
   window.submitCreateProtein = async function (e) {
     e.preventDefault();
-    const name     = document.getElementById('cp-name').value.trim();
+    const name = document.getElementById('cp-name').value.trim();
     const fullname = document.getElementById('cp-fullname').value.trim();
     const organism = document.getElementById('cp-organism').value.trim();
-    // Extract protein sequence from multi-FASTA input (strips DNA sequences)
-    const rawSeq   = document.getElementById('cp-sequence').value.trim();
-    const sequence = parseFastaProteinSequence(rawSeq);
+    // Strip FASTA header lines (starting with '>') before sending
+    const rawSeq = document.getElementById('cp-sequence').value.trim();
+    const sequence = rawSeq.split('\n').filter(l => !l.trimStart().startsWith('>')).join('').replace(/\s+/g, '').toUpperCase();
     const description = document.getElementById('cp-description').value.trim();
-    const pdbFile  = document.getElementById('cp-pdb-file').files[0] || alphafoldPDBBlob || null;
-    const cifFile  = document.getElementById('cp-cif-file').files[0] || null;
+    const pdbFile = document.getElementById('cp-pdb-file').files[0] || alphafoldPDBBlob || null;
+    const cifFile = document.getElementById('cp-cif-file').files[0] || null;
 
     if (!name || !fullname || !organism || !sequence) {
       Utils.showToast('Veuillez remplir les champs obligatoires (*)', 'error');
@@ -412,6 +331,7 @@
       if (result.success) {
         Utils.showToast(`Protéine "${name}" créée avec succès`, 'success');
         closeCreateProteinModal();
+        // Refresh protein selector and load the new protein
         await populateProteinSelect();
         if (result.data && result.data.id) {
           const sel = document.getElementById('protein-select');

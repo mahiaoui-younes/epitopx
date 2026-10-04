@@ -127,6 +127,51 @@ function safePath(requestPath) {
 }
 
 // -------------------------------------------------------------------------
+// -- Backend Health Check / Pre-warm Logic (Render Cold Start) -----------
+// -------------------------------------------------------------------------
+
+let lastBackendPingTime = 0;
+
+function pingBackend(reason = 'periodic') {
+  lastBackendPingTime = Date.now();
+  try {
+    const _remoteHost = new URL(REMOTE_API);
+    const proto = REMOTE_API.startsWith('https') ? https : http;
+    const defaultPort = REMOTE_API.startsWith('https') ? 443 : 80;
+    const _checkReq = proto.request({
+      hostname: _remoteHost.hostname,
+      port: _remoteHost.port || defaultPort,
+      path: '/api/health/',
+      method: 'GET',
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+      timeout: 30000,
+    }, (_res) => {
+      if (_res.statusCode >= 500) {
+        log.warn('health', `Remote API returned HTTP ${_res.statusCode} (${reason}) — backend may be starting`);
+      } else {
+        log.info('health', `Remote API reachable (HTTP ${_res.statusCode}) [${reason}]`);
+      }
+      _res.resume();
+    });
+    _checkReq.on('timeout', () => {
+      _checkReq.destroy();
+      log.warn('health', `Remote API health-check timed out (${reason}) — backend cold-starting in background`);
+    });
+    _checkReq.on('error', (_err) => {
+      log.warn('health', `Remote API ping failed (${reason}): ${_err.message}`);
+    });
+    _checkReq.end();
+  } catch (_) { /* malformed REMOTE_API URL — skip check */ }
+}
+
+// Debounced ping: wakes backend at most once every 2 minutes when users browse pages
+function triggerBackendPing(reason = 'page_visit') {
+  if (Date.now() - lastBackendPingTime > 2 * 60 * 1000) {
+    pingBackend(reason);
+  }
+}
+
+// -------------------------------------------------------------------------
 // -- HTTP Server ----------------------------------------------------------
 // -------------------------------------------------------------------------
 
@@ -1767,6 +1812,11 @@ OTHER INSTRUCTIONS:
   const requestedPath = parsed.pathname === '/' ? '/index.html' : parsed.pathname;
   const filePath = safePath(requestedPath);
 
+  // Pre-warm backend when an HTML page is accessed (user visiting the app)
+  if (requestedPath === '/index.html' || requestedPath.endsWith('.html')) {
+    triggerBackendPing(`page:${requestedPath}`);
+  }
+
   if (!filePath) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('403 Forbidden');
@@ -1811,41 +1861,12 @@ server.listen(PORT, '0.0.0.0', () => {
   log.info('server', `Cache: max ${cache.maxEntries} entries | Throttle: 2-3 concurrent/host`);
   log.info('server', `Status endpoint: /api/_status`);
 
-  // Startup health-check (use /api/health/ — no auth required)
-  function pingBackend() {
-    try {
-      const _remoteHost = new URL(REMOTE_API);
-      const proto = REMOTE_API.startsWith('https') ? https : http;
-      const _checkReq = proto.request({
-        hostname: _remoteHost.hostname,
-        path: '/api/health/',
-        method: 'GET',
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-        timeout: 8000,
-      }, (_res) => {
-        if (_res.statusCode >= 500) {
-          log.warn('health', `Remote API returned HTTP ${_res.statusCode} — backend may be down`);
-        } else {
-          log.info('health', `Remote API reachable (HTTP ${_res.statusCode})`);
-        }
-        _res.resume();
-      });
-      _checkReq.on('timeout', () => {
-        _checkReq.destroy();
-        log.warn('health', 'Remote API health-check timed out — backend may be cold-starting');
-      });
-      _checkReq.on('error', (_err) => {
-        log.warn('health', `Remote API ping failed: ${_err.message}`);
-      });
-      _checkReq.end();
-    } catch (_) { /* malformed REMOTE_API URL — skip check */ }
-  }
-
-  pingBackend(); // immediate check on startup
+  // Initial startup ping to wake/check backend
+  pingBackend('startup');
 
   // Keep-alive ping every 14 minutes to prevent Render free-tier cold-start
   // (Render spins down after 15 minutes of inactivity)
-  setInterval(pingBackend, 14 * 60 * 1000);
+  setInterval(() => pingBackend('keepalive'), 14 * 60 * 1000);
 });
 
 // -- Graceful shutdown ----------------------------------------------------

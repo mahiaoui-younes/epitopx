@@ -71,5 +71,28 @@ var Auth = typeof Auth !== 'undefined' ? Auth : (() => {
     try { return sessionStorage.getItem('_authSession') === '1'; } catch (_) { return false; }
   }
 
-  return { setAuthToken, clearAuthToken, getAuthToken, isAuthenticated };
+  /**
+   * Pre-warms the backend on page load to wake up sleeping Render instances.
+   * Debounced to ping at most once every 2 minutes per browser session.
+   */
+  function wakeUpBackend() {
+    try {
+      var lastPing = parseInt(sessionStorage.getItem('_last_be_ping') || '0', 10);
+      if (Date.now() - lastPing < 2 * 60 * 1000) return;
+      sessionStorage.setItem('_last_be_ping', String(Date.now()));
+      fetch('/api/health/', { method: 'GET', cache: 'no-store' }).catch(function() {});
+    } catch (_) {}
+  }
+
+  // Auto-trigger on page load in browser
+  if (typeof window !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', wakeUpBackend);
+    } else {
+      wakeUpBackend();
+    }
+  }
+
+  return { setAuthToken, clearAuthToken, getAuthToken, isAuthenticated, wakeUpBackend };
 })();
+
