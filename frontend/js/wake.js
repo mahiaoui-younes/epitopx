@@ -43,7 +43,7 @@
   function healthOk() {
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var t = controller ? setTimeout(function () { controller.abort(); }, 100000) : null;
-    return fetch('/api/health/?db=1', { cache: 'no-store', signal: controller ? controller.signal : undefined })
+    return fetch('/api/health/', { cache: 'no-store', signal: controller ? controller.signal : undefined })
       .then(function (res) { return res.ok; })
       .catch(function () { return false; })
       .then(function (ok) { if (t) clearTimeout(t); return ok; });

@@ -150,7 +150,7 @@ function healthRequest() {
     const req = proto.request({
       hostname: remoteHost.hostname,
       port: remoteHost.port || (isHttps ? 443 : 80),
-      path: '/api/health/?db=1',
+      path: '/api/health/',
       method: 'GET',
       headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' },
       timeout: WAKE_ATTEMPT_TIMEOUT_MS,

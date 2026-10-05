@@ -1,6 +1,6 @@
-# Keeps the Render free-tier backend and Neon database from sleeping.
+# Keeps the Render free-tier backend from sleeping.
 # Render spins down after 15 minutes of inactivity; this runs every 10 minutes.
-# Neon suspends compute after 5 minutes; ?db=1 triggers SELECT 1 to keep Neon warm.
+# Neon database is NOT pinged, allowing Neon to stay suspended/sleeping when idle.
 name: Keep alive
 
 on:
@@ -12,14 +12,14 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render Backend and Neon Database
+      - name: Ping Render Backend (Does NOT touch Neon DB)
         run: |
           BACKEND="${{ vars.BACKEND_URL }}"
           if [ -z "$BACKEND" ]; then
             BACKEND="https://epitopx-backend.onrender.com"
           fi
-          echo "Pinging backend at: $BACKEND/api/health/?db=1"
-          curl -sS -i --max-time 120 --retry 3 --retry-delay 5 "$BACKEND/api/health/?db=1"
+          echo "Pinging backend at: $BACKEND/api/health/"
+          curl -sS -i --max-time 120 --retry 3 --retry-delay 5 "$BACKEND/api/health/"
 
       - name: Ping Frontend
         run: |
