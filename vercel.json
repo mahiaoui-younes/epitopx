@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "frontend/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
+}
