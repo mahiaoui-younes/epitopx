@@ -216,7 +216,14 @@ async function requestHandler(req, res) {
 
   setSecurityHeaders(res);
 
-  const parsed = url.parse(req.url);
+  let parsed = url.parse(req.url, true);
+  if (parsed.query && parsed.query._api_path) {
+    const rawPath = parsed.query._api_path;
+    delete parsed.query._api_path;
+    const remainingQuery = url.format({ query: parsed.query });
+    req.url = rawPath + (remainingQuery && remainingQuery !== '?' ? (remainingQuery.startsWith('?') ? remainingQuery : '?' + remainingQuery) : '');
+    parsed = url.parse(req.url);
+  }
   const pathname = decodeURIComponent(parsed.pathname);
 
   // -- Block null bytes ---------------------------------------------------
@@ -1850,8 +1857,17 @@ OTHER INSTRUCTIONS:
   // -- Static file server (with path traversal protection) ----------------
   // -----------------------------------------------------------------------
 
-  const requestedPath = parsed.pathname === '/' ? '/index.html' : parsed.pathname;
-  const filePath = safePath(requestedPath);
+  let requestedPath = parsed.pathname === '/' ? '/index.html' : parsed.pathname;
+  let filePath = safePath(requestedPath);
+
+  // Support clean URLs (e.g. /login -> /login.html)
+  if (filePath && !path.extname(requestedPath)) {
+    const htmlCandidate = filePath + '.html';
+    if (fs.existsSync(htmlCandidate)) {
+      requestedPath += '.html';
+      filePath = htmlCandidate;
+    }
+  }
 
   // Pre-warm backend when an HTML page is accessed (user visiting the app)
   if (requestedPath === '/index.html' || requestedPath.endsWith('.html')) {
