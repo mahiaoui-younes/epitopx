@@ -254,6 +254,19 @@ async function requestHandler(req, res) {
     return;
   }
 
+  // -- Diagnostic endpoint: /api/_debug -----------------------------------
+  if (pathname === '/api/_debug') {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({
+      dirname: __dirname,
+      cwd: process.cwd(),
+      DOCUMENT_ROOT,
+      filesInDir: fs.existsSync(__dirname) ? fs.readdirSync(__dirname) : [],
+      filesInCwd: fs.existsSync(process.cwd()) ? fs.readdirSync(process.cwd()) : [],
+    }, null, 2));
+    return;
+  }
+
   // -----------------------------------------------------------------------
   // -- Proxy routes (with caching, throttling, validation) ----------------
   // -----------------------------------------------------------------------
