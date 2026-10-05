@@ -1,10 +1,6 @@
-# Keeps the Render free-tier services (and the Neon DB) from going to sleep.
-# Render sleeps a service after 15 min WITHOUT INBOUND traffic. Hitting the
-# public frontend URL keeps the frontend awake, and the frontend proxies
-# /api/health/ to the backend (which also touches Neon with ?db=1).
-#
-# Setup: GitHub repo -> Settings -> Secrets and variables -> Actions -> Variables
-#        add  SITE_URL = https://epitopx-frontend.onrender.com
+# Keeps the Render free-tier backend and Neon database from sleeping.
+# Render spins down after 15 minutes of inactivity; this runs every 10 minutes.
+# Neon suspends compute after 5 minutes; ?db=1 triggers SELECT 1 to keep Neon warm.
 name: Keep alive
 
 on:
@@ -15,11 +11,22 @@ on:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    if: ${{ vars.SITE_URL != '' }}
     steps:
-      - name: Ping frontend + backend + database
+      - name: Ping Render Backend and Neon Database
         run: |
-          curl -sS -o /dev/null -w "frontend: %{http_code} in %{time_total}s\n" \
-            --max-time 120 --retry 3 --retry-delay 10 "${{ vars.SITE_URL }}/"
-          curl -sS -o /dev/null -w "backend+db: %{http_code} in %{time_total}s\n" \
-            --max-time 120 --retry 3 --retry-delay 10 "${{ vars.SITE_URL }}/api/health/?db=1"
+          BACKEND="${{ vars.BACKEND_URL }}"
+          if [ -z "$BACKEND" ]; then
+            BACKEND="https://epitopx-backend.onrender.com"
+          fi
+          echo "Pinging backend at: $BACKEND/api/health/?db=1"
+          curl -sS -i --max-time 120 --retry 3 --retry-delay 5 "$BACKEND/api/health/?db=1"
+
+      - name: Ping Frontend
+        run: |
+          FRONTEND="${{ vars.SITE_URL }}"
+          if [ -z "$FRONTEND" ]; then
+            FRONTEND="https://epitopx-frontend.onrender.com"
+          fi
+          echo "Pinging frontend at: $FRONTEND"
+          curl -sS -o /dev/null -w "Frontend HTTP %{http_code} in %{time_total}s\n" \
+            --max-time 60 --retry 2 "$FRONTEND" || true

@@ -217,9 +217,10 @@ CORS_ALLOWED_ORIGINS = list(filter(None, [
 CORS_ALLOWED_ORIGINS = list(dict.fromkeys(CORS_ALLOWED_ORIGINS))
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-# Allow all .onrender.com origins (covers both services)
+# Allow all .onrender.com and .vercel.app origins
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r'^https://.*\.onrender\.com$',
+    r'^https://.*\.vercel\.app$',
     r'^http://localhost(:\d+)?$',
     r'^http://127\.0\.0\.1(:\d+)?$',
 ]

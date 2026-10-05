@@ -34,8 +34,10 @@ const validator              = require('./lib/validator');
 
 // -- Configuration --------------------------------------------------------
 const PORT        = process.env.PORT ? Number(process.env.PORT) : 3333;
-const REMOTE_API  = process.env.REMOTE_API  || 'http://localhost:8000';
-const EPITOPE_API = process.env.EPITOPE_API || 'http://localhost:8000';
+const IS_PROD     = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+const DEFAULT_REMOTE = IS_PROD ? 'https://epitopx-backend.onrender.com' : 'http://localhost:8000';
+const REMOTE_API  = process.env.REMOTE_API  || DEFAULT_REMOTE;
+const EPITOPE_API = process.env.EPITOPE_API || DEFAULT_REMOTE;
 const LOG_LEVEL   = process.env.LOG_LEVEL || 'info';
 
 const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -200,8 +202,9 @@ function triggerBackendPing(reason = 'page_visit') {
 // -- HTTP Server ----------------------------------------------------------
 // -------------------------------------------------------------------------
 
-const server = http.createServer(async (req, res) => {
-  const clientIp = req.socket.remoteAddress || 'unknown';
+async function requestHandler(req, res) {
+  const forwarded = req.headers && req.headers['x-forwarded-for'];
+  const clientIp  = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : (req.socket && req.socket.remoteAddress)) || 'unknown';
 
   // -- General rate limiting ----------------------------------------------
   if (checkRateLimit(clientIp, 'general')) {
@@ -1868,40 +1871,47 @@ OTHER INSTRUCTIONS:
     });
     fs.createReadStream(filePath).pipe(res);
   });
-});
-
-// -------------------------------------------------------------------------
-// -- Startup --------------------------------------------------------------
-// -------------------------------------------------------------------------
-
-server.listen(PORT, '0.0.0.0', () => {
-  log.info('server', `EpitopX AI dev server running at http://0.0.0.0:${PORT}`);
-  log.info('server', `API proxy: /api/* ? ${REMOTE_API}/api/*`);
-  log.info('server', `UniProt proxy: /api/uniprot/* ? rest.uniprot.org (cached, throttled)`);
-  log.info('server', `NCBI proxy: /api/ncbi/* ? eutils.ncbi.nlm.nih.gov (cached, throttled)`);
-  log.info('server', `BLAST proxy: /api/blast/* ? blast.ncbi.nlm.nih.gov (throttled)`);
-  log.info('server', `Alignment proxy: /api/alignment/* ? ${process.env.ALIGNMENT_API || 'http://localhost:8000'}/msa/align/`);
-  log.info('server', `Epitope proxy: /api/epitopes/* ? ${EPITOPE_API}`);
-  log.info('server', `Rate limits: ${RATE_LIMITS.general.max} req/min (general), ${RATE_LIMITS.apiProxy.max} req/min (API proxy)`);
-  log.info('server', `Cache: max ${cache.maxEntries} entries | Throttle: 2-3 concurrent/host`);
-  log.info('server', `Status endpoint: /api/_status`);
-
-  // Initial startup ping to wake/check backend
-  pingBackend('startup');
-
-  // Keep-alive ping every 10 minutes to prevent Render free-tier cold-start
-  // (Render spins down after 15 minutes of inactivity)
-  setInterval(() => pingBackend('keepalive'), 10 * 60 * 1000);
-});
-
-// -- Graceful shutdown ----------------------------------------------------
-function shutdown() {
-  log.info('server', 'Shutting down�');
-  cache.destroy();
-  server.close(() => process.exit(0));
-  // Force exit after 5s if connections are still open
-  setTimeout(() => process.exit(1), 5000);
 }
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+// -------------------------------------------------------------------------
+// -- Server Instance & Startup --------------------------------------------
+// -------------------------------------------------------------------------
+
+const server = http.createServer(requestHandler);
+
+// Only listen when run directly (local dev or Render container)
+if (require.main === module) {
+  server.listen(PORT, '0.0.0.0', () => {
+    log.info('server', `EpitopX AI dev server running at http://0.0.0.0:${PORT}`);
+    log.info('server', `API proxy: /api/* → ${REMOTE_API}/api/*`);
+    log.info('server', `UniProt proxy: /api/uniprot/* → rest.uniprot.org (cached, throttled)`);
+    log.info('server', `NCBI proxy: /api/ncbi/* → eutils.ncbi.nlm.nih.gov (cached, throttled)`);
+    log.info('server', `BLAST proxy: /api/blast/* → blast.ncbi.nlm.nih.gov (throttled)`);
+    log.info('server', `Alignment proxy: /api/alignment/* → ${process.env.ALIGNMENT_API || DEFAULT_REMOTE}/msa/align/`);
+    log.info('server', `Epitope proxy: /api/epitopes/* → ${EPITOPE_API}`);
+    log.info('server', `Rate limits: ${RATE_LIMITS.general.max} req/min (general), ${RATE_LIMITS.apiProxy.max} req/min (API proxy)`);
+    log.info('server', `Cache: max ${cache.maxEntries} entries | Throttle: 2-3 concurrent/host`);
+    log.info('server', `Status endpoint: /api/_status`);
+
+    // Initial startup ping to wake/check backend
+    pingBackend('startup');
+
+    // Keep-alive ping every 10 minutes to prevent Render free-tier cold-start
+    // (Render spins down after 15 minutes of inactivity)
+    setInterval(() => pingBackend('keepalive'), 10 * 60 * 1000);
+  });
+
+  // -- Graceful shutdown ----------------------------------------------------
+  function shutdown() {
+    log.info('server', 'Shutting down...');
+    cache.destroy();
+    server.close(() => process.exit(0));
+    // Force exit after 5s if connections are still open
+    setTimeout(() => process.exit(1), 5000);
+  }
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+module.exports = requestHandler;
