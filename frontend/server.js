@@ -135,7 +135,7 @@ let lastBackendOkTime   = 0;      // last time the backend answered with a non-5
 let wakeInFlight        = false;  // only one wake loop at a time
 
 const WAKE_ATTEMPT_TIMEOUT_MS = 90 * 1000;  // Render cold start can take 50-90s
-const WAKE_MAX_ATTEMPTS       = 6;
+const WAKE_MAX_TOTAL_MS       = 3 * 60 * 1000; // keep trying for up to 3 minutes
 const WAKE_RETRY_DELAY_MS     = 5000;
 
 // Single health request. Resolves true when the backend answered (status < 500).
@@ -168,27 +168,30 @@ async function pingBackend(reason = 'periodic') {
   wakeInFlight = true;
   lastBackendPingTime = Date.now();
   try {
-    for (let attempt = 1; attempt <= WAKE_MAX_ATTEMPTS; attempt++) {
+    const startedAt = Date.now();
+    let attempt = 0;
+    while (Date.now() - startedAt < WAKE_MAX_TOTAL_MS) {
+      attempt++;
       const status = await healthRequest();
       if (status) {
         lastBackendOkTime = Date.now();
         log.info('health', `Remote API reachable (HTTP ${status}) [${reason}, attempt ${attempt}]`);
         return;
       }
-      log.warn('health', `Remote API not ready [${reason}, attempt ${attempt}/${WAKE_MAX_ATTEMPTS}] — backend cold-starting`);
+      log.warn('health', `Remote API not ready [${reason}, attempt ${attempt}] — backend cold-starting`);
       await new Promise(r => setTimeout(r, WAKE_RETRY_DELAY_MS));
     }
-    log.error('health', `Remote API still unreachable after ${WAKE_MAX_ATTEMPTS} attempts (${REMOTE_API}) — check REMOTE_API and the backend deploy logs`);
+    log.error('health', `Remote API still unreachable after ${Math.round(WAKE_MAX_TOTAL_MS / 1000)}s (${REMOTE_API}) — check REMOTE_API and the backend deploy logs`);
   } finally {
     wakeInFlight = false;
   }
 }
 
 // Page-visit wake-up: ping if the backend hasn't been confirmed alive in the
-// last 10 minutes (and no more than once every 30s).
+// last 2 minutes (and no more than once every 30s).
 function triggerBackendPing(reason = 'page_visit') {
   const now = Date.now();
-  if (now - lastBackendOkTime > 10 * 60 * 1000 && now - lastBackendPingTime > 30 * 1000) {
+  if (now - lastBackendOkTime > 2 * 60 * 1000 && now - lastBackendPingTime > 30 * 1000) {
     pingBackend(reason);
   }
 }
